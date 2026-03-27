@@ -170,9 +170,14 @@ function markSatisfied(ticketId, fbId) {
   if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">✅ Glad it helped! Ticket auto-closed.</span>';
 }
 
-function markUnsatisfied(ticketId, question, fbId) {
-  const tk = D.tickets.find(x => x.id === ticketId);
-  if (tk) { tk.escalated = true; tk.status = 'open'; save(); updateBadges(); }
+function markUnsatisfied(ticketId, fbId) {
+  // Create or update ticket as escalated
+  let tk = D.tickets.find(x => x.id === ticketId);
+  if (!tk) {
+    tk = {id:ticketId, question:'(from chat)', user:CU?.name||'Unknown', status:'open', ts:Date.now()};
+    D.tickets.push(tk);
+  }
+  tk.escalated = true; tk.status = 'open'; save(); updateBadges();
   const fb = document.getElementById(fbId);
   if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he\'ll follow up shortly.</span>';
   const m = document.getElementById('msgs');
@@ -312,13 +317,7 @@ function markUnsatisfied(ticketId, question, fbId) {
       <div class="fg"><div class="fl">Full Name</div><input class="fi" type="text" id="inv-name" placeholder="Your full name"/></div>
       <div class="fg"><div class="fl">Email</div><input class="fi" type="email" id="inv-email" placeholder="you@shadowfax.in" readonly style="background:var(--s2);color:var(--tx2)"/></div>
       <div class="fg"><div class="fl">Set Password</div><input class="fi" type="password" id="inv-pass" placeholder="Choose a password (min 6 chars)"/></div>
-      <div class="fg"><div class="fl">Department</div>
-        <select class="fsl" id="inv-dept">
-          <option value="">Select department</option>
-          <option>FM - First Mile</option><option>LM - Last Mile</option>
-          <option>Tech</option><option>Ops</option><option>Finance</option><option>HR</option><option>Other</option>
-        </select>
-      </div>
+
       <button class="bp" onclick="acceptInvite()">Create Account & Sign In</button>
     </div>
   </div>
@@ -348,6 +347,9 @@ function markUnsatisfied(ticketId, question, fbId) {
     <button class="nb admin-only" id="nav-dashboard" onclick="showPg('dashboard')">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
     </button>
+    <button class="nb admin-only" id="nav-chatlogs" onclick="showPg('chatlogs')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Chat Logs
+    </button>
     <div id="tb-r">
       <div id="tb-u"><div class="uav" id="u-av">?</div><span id="u-lb"></span></div><button id="chpw-btn" onclick="openChangePw()" style="padding:6px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);color:var(--tx2);font-size:12px;cursor:pointer;font-family:var(--fn)">🔑 Change Password</button>
       <button id="lo-btn" onclick="doLogout()">Sign Out</button>
@@ -374,9 +376,10 @@ function markUnsatisfied(ticketId, question, fbId) {
     </div>
     <div id="cm">
       <div id="api-key-banner" style="display:none;background:#FEF9EC;border-bottom:1px solid rgba(245,158,11,.25);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
-        <span style="font-size:13px;color:#92640a;flex:1">⚠️ <strong>API key not set.</strong> Enter your Anthropic API key to enable AI answers.</span>
-        <input id="api-key-input" type="password" placeholder="sk-ant-..." style="padding:7px 12px;border:1.5px solid #f59e0b;border-radius:6px;font-size:12px;font-family:var(--fn);width:280px;background:white"/>
-        <button onclick="saveApiKey()" style="padding:7px 14px;background:#1A3C2A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">Save Key</button>
+        <span style="font-size:13px;color:#92640a;flex:1">⚡ <strong>Optional:</strong> Add a free Groq API key for faster AI responses. <a href="https://console.groq.com" target="_blank" style="color:#92640a;font-weight:600">Get free key →</a></span>
+        <input id="api-key-input" type="password" placeholder="gsk_..." style="padding:7px 12px;border:1.5px solid #f59e0b;border-radius:6px;font-size:12px;font-family:var(--fn);width:240px;background:white"/>
+        <button onclick="saveApiKey()" style="padding:7px 14px;background:#1A3C2A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">Save</button>
+        <button onclick="document.getElementById('api-key-banner').style.display='none'" style="padding:7px 10px;background:transparent;border:none;cursor:pointer;color:#92640a;font-size:16px">✕</button>
       </div>
       <div id="ch">
         <div class="sdot"></div>
@@ -428,13 +431,7 @@ function markUnsatisfied(ticketId, question, fbId) {
         <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px">📨 Send Invite Link</div>
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
           <div style="flex:1;min-width:200px"><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Email</div><input class="fi" type="email" id="inv-to" placeholder="colleague@shadowfax.in"/></div>
-          <div style="width:160px"><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Department</div>
-            <select class="fsl" id="inv-dept-admin">
-              <option value="">Select dept</option>
-              <option>FM - First Mile</option><option>LM - Last Mile</option>
-              <option>Tech</option><option>Ops</option><option>Finance</option><option>HR</option><option>Other</option>
-            </select>
-          </div>
+
           <button class="bsm bsm-org" style="height:42px;padding:0 18px" onclick="createAndCopyInvite()">Generate & Copy Link</button>
         </div>
         <div id="inv-result" style="display:none;margin-top:12px;padding:10px 12px;background:var(--grn-bg);border:1px solid rgba(0,168,107,.2);border-radius:var(--rx);font-size:12px;color:var(--grn)"></div>
@@ -529,6 +526,18 @@ function markUnsatisfied(ticketId, question, fbId) {
 </div>
 
 <!-- TOAST -->
+  <!-- CHAT LOGS -->
+  <div class="pg" id="pg-chatlogs">
+    <div class="pi">
+      <div class="ph"><h2>Chat Logs</h2><p>All conversations recorded — every question and answer</p></div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <input id="cl-search" class="fi" style="flex:1;min-width:200px" placeholder="Search chats…" oninput="renderChatLogs()"/>
+        <button onclick="clearChatLogs()" class="bsm bsm-gh" style="font-size:12px">🗑 Clear Logs</button>
+      </div>
+      <div id="cl-body"></div>
+    </div>
+  </div>
+
 <div class="toast" id="toast">
   <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
   <span id="toast-msg"></span>
@@ -544,7 +553,7 @@ function defData() {
   return {
     config: { apiKey: '' },
     members: [{ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' }],
-    tickets: [], questionLog: [],
+    tickets: [], questionLog: [], chatLog: [],
     faqs: [
       {id:1,tag:'FM – Pickup Models',q:'What are the two pickup models and how do they differ?',a:'Shadowfax FM has two models:\n1. Marketplace Pickup – Client-specific serviceability. Orders can be picked by both models without movement. For DC visibility, orders can be moved via allocation engine config (contact Sudipta).\n2. Warehouse Pickup – Universal serviceability. If open for one client, it\'s live for all others. Cannot be picked via marketplace model.',hits:0},
       {id:2,tag:'FM – Pickup Models',q:'How to solve pickup confusion between warehouse and marketplace model?',a:'A. Marketplace pickup can be done by both models without order movement. For visibility, move to DC via allocation engine config — handled by Sudipta.\nB. Warehouse pickup cannot be done via marketplace model. Long-term fix: move seller/pincode/client to marketplace. Old orders can be moved via Sudipta.\nC. Client can convert any order from marketplace to warehouse by passing flag under "order_type" column.\nD. Warehouse pincode for orders <5kg should be under "regular" order service.\nE. Marketplace to warehouse switch requires minimum 100 orders.',hits:0},
@@ -721,13 +730,12 @@ function acceptInvite() {
   const name = document.getElementById('inv-name').value.trim();
   const email = document.getElementById('inv-email').value.trim().toLowerCase();
   const pass = document.getElementById('inv-pass').value;
-  const dept = document.getElementById('inv-dept').value;
+  const dept = 'User';
   const token = document.getElementById('inv-email').dataset.token;
   const err = document.getElementById('inv-err');
   err.style.display = 'none';
   if (!name) { err.style.display='block'; err.textContent='Please enter your full name.'; return; }
   if (pass.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters.'; return; }
-  if (!dept) { err.style.display='block'; err.textContent='Please select your department.'; return; }
   if (D.members.find(x => x.email.toLowerCase()===email)) {
     err.style.display='block'; err.textContent='An account with this email already exists. Please sign in.'; return;
   }
@@ -742,10 +750,9 @@ function acceptInvite() {
 
 function createAndCopyInvite() {
   const email = document.getElementById('inv-to').value.trim().toLowerCase();
-  const dept = document.getElementById('inv-dept-admin').value;
+  const dept = 'User';
   const res = document.getElementById('inv-result');
   if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
-  if (!dept) { alert('Please select a department.'); return; }
   if (D.members.find(x => x.email.toLowerCase()===email)) { alert('This email already has an account.'); return; }
   const link = generateInvite(email, dept);
   navigator.clipboard.writeText(link).catch(()=>{});
@@ -756,17 +763,18 @@ function createAndCopyInvite() {
 
 function saveApiKey() {
   const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('sk-')) { alert('Please enter a valid Anthropic API key starting with sk-'); return; }
+  if (!key) { alert('Please enter a Groq API key'); return; }
   D.config = D.config || {};
-  D.config.apiKey = key;
+  D.config.groqKey = key;
   save();
   document.getElementById('api-key-banner').style.display = 'none';
-  addMsg('bot', '✅ API key saved! You can now ask questions.');
+  addMsg('bot', '✅ Groq API key saved! AI responses will be faster now.');
 }
 
 function checkApiKey() {
   const banner = document.getElementById('api-key-banner');
-  if (!D.config?.apiKey) {
+  // Show banner only if no groq key and admin
+  if (!D.config?.groqKey && CU?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
     banner.style.display = 'flex';
   } else {
     banner.style.display = 'none';
@@ -813,7 +821,7 @@ function enterPortal() {
   }
   const isAdmin = CU.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && CU.role === 'admin';
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-  updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey();
+  updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey(); renderChatLogs();
   const tkPh = document.getElementById('tk-ph');
   if (tkPh) tkPh.textContent = isAdmin ? 'All team tickets — respond and save answers to KB' : 'Your raised tickets and admin responses';
   if (isAdmin) refreshDash();
@@ -826,6 +834,7 @@ function showPg(n) {
   document.getElementById('pg-'+n).classList.add('on');
   document.getElementById('nav-'+n).classList.add('on');
   if (n==='dashboard') refreshDash();
+  if (n==='chatlogs') renderChatLogs();
 }
 
 /* 8PM IST MAILER */
@@ -910,8 +919,9 @@ async function sendMsg() {
   if (!text) return;
   inp.value=''; addMsg('user',text);
   D.questionLog.push({text,ts:Date.now(),user:CU?.name||'Unknown'});
-  const tk={id:`T-${String(D.tickets.length+1).padStart(3,'0')}`,question:text,user:CU?.name||'Unknown',status:'open',ts:Date.now()};
-  D.tickets.push(tk); save(); updateBadges();
+  D.chatLog = D.chatLog || [];
+  D.chatLog.push({role:'user',text,user:CU?.name||'Unknown',ts:Date.now()});
+  save(); updateBadges();
   const typing=addMsg('bot','Thinking…'); typing.classList.add('typing');
   // Smart KB filtering — only send top 5 most relevant entries to keep prompt small & fast
   const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 3);
@@ -925,18 +935,46 @@ async function sendMsg() {
   const ctx = topFaqs.map((f, i) => `[${i+1}] Q: ${f.q}\nA: ${f.a}`).join('\n\n');
   try {
     const sysPrompt = `You are Ask Akash AI, Shadowfax FM ops assistant. Answer using this KB. Understand intent not just keywords. If in KB start with "📚 From Knowledge Base:". If not start with "💡 General Guidance:". Be brief and direct. Key contact: Sudipta (allocation engine/order movements). Never say you don't know about pickup models, barcodes, cutoffs, courier service or serviceability.\n\nKB:\n${ctx}`;
-    const res = await fetch('https://text.pollinations.ai/' + encodeURIComponent(sysPrompt + '\n\nQuestion: ' + text), {
-      signal: AbortSignal.timeout(20000)
-    });
-    if (!res.ok) throw new Error('API error ' + res.status);
-    const reply = await res.text();
+    // Try Groq (fast, free, reliable) with fallback to Pollinations
+    let reply = '';
+    try {
+      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (D.config?.groqKey || '') },
+        body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 500, messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: text }] }),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (groqRes.ok) {
+        const gd = await groqRes.json();
+        reply = gd.choices?.[0]?.message?.content || '';
+      }
+    } catch(ge) { reply = ''; }
+    // Fallback: Pollinations
+    if (!reply) {
+      const polRes = await fetch('https://text.pollinations.ai/' + encodeURIComponent(sysPrompt + '\n\nQuestion: ' + text), { signal: AbortSignal.timeout(20000) });
+      if (polRes.ok) reply = await polRes.text();
+    }
+    // Fallback: local KB search answer
+    if (!reply) {
+      const best = scored[0];
+      reply = best && best.score > 0
+        ? '📚 From Knowledge Base:\n\n' + best.a
+        : '💡 I could not connect to the AI service right now. Please try again in a moment, or raise a ticket for Akash to answer directly.';
+    }
     D.faqs.forEach(f=>{if(reply.toLowerCase().includes(f.q.toLowerCase().slice(0,20)))f.hits=(f.hits||0)+1;});
-    save(); typing.remove(); addMsg('bot',reply.replace(/\n/g,'<br>'));
-    // Add "I don't know / Raise ticket" button after every bot reply
-    const btnWrap = document.createElement('div');
-    btnWrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:4px;';
-    btnWrap.innerHTML = `<button onclick="raiseTicketToAkash('${tk.id.replace(/'/g,"\\'")}','${text.replace(/'/g,"\\'").replace(/\n/g,' ').slice(0,120)}')" style="background:transparent;border:1.5px solid var(--bd2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn);font-weight:500;transition:all .15s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.borderColor='var(--org)';this.style.color='var(--org)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--tx2)'">🙋 I don't know — Raise ticket to Akash</button>`;
-    document.getElementById('msgs').appendChild(btnWrap);
+    D.chatLog = D.chatLog || [];
+    D.chatLog.push({role:'bot',text:reply,user:'Ask Akash AI',ts:Date.now()});
+    save(); typing.remove(); addMsg('bot', reply.replace(/\n/g,'<br>'));
+    // Feedback row
+    const fbId = 'fb_' + tk.id;
+    const fbWrap = document.createElement('div');
+    fbWrap.id = fbId;
+    fbWrap.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 6px 10px 44px;flex-wrap:wrap;';
+    fbWrap.innerHTML =
+      '<span style="font-size:12px;color:var(--tx3);font-family:var(--fn)">Was this helpful?</span>' +
+      '<button onclick="markSatisfied(\''+tk.id+'\',\''+fbId+'\')" style="background:var(--grn-bg);border:1.5px solid rgba(26,60,42,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--grn);cursor:pointer;font-family:var(--fn);font-weight:600;">👍 Yes, helpful</button>' +
+      '<button onclick="markUnsatisfied(\''+tk.id+'\',\''+fbId+'\')" style="background:var(--red-bg);border:1.5px solid rgba(211,47,47,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--fn);font-weight:600;">👎 No — Raise Ticket</button>';
+    document.getElementById('msgs').appendChild(fbWrap);
     document.getElementById('msgs').scrollTop = 99999;
   } catch(e) {
     typing.remove();
@@ -952,9 +990,14 @@ function markSatisfied(ticketId, fbId) {
   if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">✅ Glad it helped! Ticket auto-closed.</span>';
 }
 
-function markUnsatisfied(ticketId, question, fbId) {
-  const tk = D.tickets.find(x => x.id === ticketId);
-  if (tk) { tk.escalated = true; tk.status = 'open'; save(); updateBadges(); }
+function markUnsatisfied(ticketId, fbId) {
+  // Create or update ticket as escalated
+  let tk = D.tickets.find(x => x.id === ticketId);
+  if (!tk) {
+    tk = {id:ticketId, question:'(from chat)', user:CU?.name||'Unknown', status:'open', ts:Date.now()};
+    D.tickets.push(tk);
+  }
+  tk.escalated = true; tk.status = 'open'; save(); updateBadges();
   const fb = document.getElementById(fbId);
   if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he\'ll follow up shortly.</span>';
   const m = document.getElementById('msgs');
@@ -1046,6 +1089,43 @@ function refreshDash() {
   CI=new Chart(cx,{type:'bar',data:{labels:l7.map(x=>x.day),datasets:[{data:l7.map(x=>x.count),backgroundColor:'rgba(255,102,0,0.75)',borderRadius:6,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6B7385',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6B7385',font:{size:11},stepSize:1}}}}});
   const sorted=[...D.faqs].sort((a,b)=>(b.hits||0)-(a.hits||0)).slice(0,5);
   document.getElementById('top-q').innerHTML=sorted.map((f,i)=>`<div class="tqi"><div class="tqr">${i+1}</div><div class="tqt">${f.q.slice(0,46)}…</div><div class="tqh">${f.hits||0}</div></div>`).join('')||'<div style="color:var(--tx3);font-size:13px">No data yet</div>';
+}
+
+/* CHAT LOGS */
+function renderChatLogs() {
+  const b = document.getElementById('cl-body');
+  if (!b) return;
+  const q = (document.getElementById('cl-search')?.value || '').toLowerCase();
+  const logs = D.chatLog || [];
+  if (!logs.length) { b.innerHTML = '<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No chat logs yet</div>'; return; }
+  // Group by day
+  const byDay = {};
+  logs.filter(l => !q || l.text.toLowerCase().includes(q) || l.user.toLowerCase().includes(q))
+    .forEach(l => {
+      const day = new Date(l.ts).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(l);
+    });
+  if (!Object.keys(byDay).length) { b.innerHTML = '<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No results</div>'; return; }
+  b.innerHTML = Object.entries(byDay).reverse().map(([day, msgs]) => `
+    <div style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:8px;padding:0 2px">${day} · ${msgs.length} messages</div>
+      ${msgs.map(l => `
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;${l.role==='user'?'flex-direction:row-reverse':''}">
+          <div style="width:28px;height:28px;border-radius:50%;background:${l.role==='user'?'var(--s3)':'var(--org)'};color:${l.role==='user'?'var(--tx2)':'white'};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${l.role==='user'?l.user[0].toUpperCase():'SF'}</div>
+          <div style="max-width:75%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.6;background:${l.role==='user'?'var(--org)':'var(--white)'};color:${l.role==='user'?'white':'var(--tx)'};border:${l.role==='user'?'none':'1px solid var(--bd)'}">
+            <div style="font-size:10px;opacity:.6;margin-bottom:3px">${l.user} · ${new Date(l.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+            ${l.text.replace(/\n/g,'<br>')}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function clearChatLogs() {
+  if (!confirm('Clear all chat logs? This cannot be undone.')) return;
+  D.chatLog = [];
+  save();
+  renderChatLogs();
 }
 
 /* BADGES */
