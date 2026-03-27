@@ -174,7 +174,7 @@ function markUnsatisfied(ticketId, question, fbId) {
   const tk = D.tickets.find(x => x.id === ticketId);
   if (tk) { tk.escalated = true; tk.status = 'open'; save(); updateBadges(); }
   const fb = document.getElementById(fbId);
-  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he'll follow up shortly.</span>';
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he\'ll follow up shortly.</span>';
   const m = document.getElementById('msgs');
   const nd = document.createElement('div');
   nd.className = 'tn';
@@ -281,7 +281,9 @@ function markUnsatisfied(ticketId, question, fbId) {
         </div>
       </div>
       <button class="bp" onclick="doLogin()" id="login-btn">Sign In</button>
-      <div style="margin-top:16px;padding:12px 14px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--tx2);line-height:1.6">
+      <button onclick="debugLogin()" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1.5px dashed var(--bd2);border-radius:var(--rs);font-size:12px;color:var(--tx3);cursor:pointer;font-family:var(--fn)">🔍 Debug — Show what's stored</button>
+      <div id="debug-out" style="display:none;margin-top:10px;padding:12px;background:#1a1a1a;border-radius:var(--rs);font-size:11px;color:#c6e040;font-family:var(--fm);white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto"></div>
+      <div style="margin-top:12px;padding:12px 14px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--tx2);line-height:1.6">
         <strong style="color:var(--tx)">First time?</strong> You need an invite link from Akash Bansal to create your account.
       </div>
     </div>
@@ -645,6 +647,40 @@ function doLogin() {
   enterPortal();
 }
 
+function debugLogin() {
+  const out = document.getElementById('debug-out');
+  out.style.display = 'block';
+  try {
+    const raw = localStorage.getItem(STORE);
+    const email = document.getElementById('l-email').value.trim().toLowerCase();
+    const pass = document.getElementById('l-pass').value;
+    if (!raw) {
+      out.textContent = 'NO DATA in localStorage (key: ' + STORE + ')\nDefault data will be used.\nTry: akash.bansal@shadowfax.in / admin@123';
+      return;
+    }
+    const d = JSON.parse(raw);
+    const members = d.members || [];
+    const found = members.find(x => x.email.toLowerCase() === email);
+    let info = 'STORE KEY: ' + STORE + '\n';
+    info += 'MEMBERS (' + members.length + '):\n';
+    members.forEach(m => {
+      info += '  - ' + m.email + ' | pass: ' + m.pass + ' | role: ' + m.role + ' | status: ' + m.status + '\n';
+    });
+    info += '\nYOU ENTERED:\n  email: ' + email + '\n  pass: ' + pass + '\n';
+    if (found) {
+      info += '\nEMAIL MATCH: YES\n';
+      info += 'PASSWORD MATCH: ' + (found.pass === pass ? 'YES ✅' : 'NO ❌ (stored: "' + found.pass + '")') + '\n';
+      info += 'STATUS: ' + found.status + '\n';
+    } else {
+      info += '\nEMAIL MATCH: NO ❌\n';
+      info += 'Available emails: ' + members.map(m=>m.email).join(', ') + '\n';
+    }
+    out.textContent = info;
+  } catch(e) {
+    out.textContent = 'Error reading store: ' + e.message;
+  }
+}
+
 function showLoginErr(msg) {
   const err = document.getElementById('le');
   err.style.display = 'block';
@@ -920,7 +956,7 @@ function markUnsatisfied(ticketId, question, fbId) {
   const tk = D.tickets.find(x => x.id === ticketId);
   if (tk) { tk.escalated = true; tk.status = 'open'; save(); updateBadges(); }
   const fb = document.getElementById(fbId);
-  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he'll follow up shortly.</span>';
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he\'ll follow up shortly.</span>';
   const m = document.getElementById('msgs');
   const nd = document.createElement('div');
   nd.className = 'tn';
