@@ -163,20 +163,23 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh
 .kbc-a{font-size:13px;color:var(--tx2);line-height:1.7}
 .kbc-ft{display:flex;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--bd)}
 
-function raiseTicketToAkash(ticketId, question) {
+function markSatisfied(ticketId, fbId) {
   const tk = D.tickets.find(x => x.id === ticketId);
-  if (tk) { tk.escalated = true; save(); }
-  // Mark visually
-  event.target.closest('button').outerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:6px 14px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(0,168,107,.2)">✅ Ticket raised to Akash</span>';
-  // Show confirmation message in chat
+  if (tk) { tk.status = 'closed'; tk.satisfied = true; save(); updateBadges(); }
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">✅ Glad it helped! Ticket auto-closed.</span>';
+}
+
+function markUnsatisfied(ticketId, question, fbId) {
+  const tk = D.tickets.find(x => x.id === ticketId);
+  if (tk) { tk.escalated = true; tk.status = 'open'; save(); updateBadges(); }
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he'll follow up shortly.</span>';
   const m = document.getElementById('msgs');
   const nd = document.createElement('div');
   nd.className = 'tn';
-  nd.style.cssText = 'background:var(--grn-bg);border-color:rgba(0,168,107,.2);color:#1A3C2A;';
-  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal — he'll follow up shortly.`;
-  m.appendChild(nd);
-  m.scrollTop = 99999;
-  updateBadges();
+  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal.`;
+  m.appendChild(nd); m.scrollTop = 99999;
 }
 
 /* TICKETS */
@@ -312,7 +315,7 @@ function raiseTicketToAkash(ticketId, question) {
     <button class="nb on" id="nav-chat" onclick="showPg('chat')">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat
     </button>
-    <button class="nb" id="nav-kb" onclick="showPg('kb')">
+    <button class="nb admin-only" id="nav-kb" onclick="showPg('kb')">
       <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Knowledge Base
     </button>
     <button class="nb" id="nav-tickets" onclick="showPg('tickets')">
@@ -327,7 +330,7 @@ function raiseTicketToAkash(ticketId, question) {
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
     </button>
     <div id="tb-r">
-      <div id="tb-u"><div class="uav" id="u-av">?</div><span id="u-lb"></span></div>
+      <div id="tb-u"><div class="uav" id="u-av">?</div><span id="u-lb"></span></div><button id="chpw-btn" onclick="openChangePw()" style="padding:6px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);color:var(--tx2);font-size:12px;cursor:pointer;font-family:var(--fn)">🔑 Change Password</button>
       <button id="lo-btn" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
@@ -344,7 +347,7 @@ function raiseTicketToAkash(ticketId, question) {
   </div>
   <!-- CHAT -->
   <div class="pg on" id="pg-chat">
-    <div id="csb">
+    <div id="csb" class="admin-only">
       <div id="csb-h"><h3>Knowledge Base</h3><p id="kb-cl">0 entries</p></div>
       <input id="kb-s" type="text" placeholder="Search topics…" oninput="renderKBS()"/>
       <div id="kb-l"></div>
@@ -380,7 +383,7 @@ function raiseTicketToAkash(ticketId, question) {
       <div class="ph"><h2>Knowledge Base</h2><p>All FM operational Q&amp;A — search, browse, or add new entries</p></div>
       <div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">
         <input id="kb-ps" class="fi" style="flex:1" placeholder="Search knowledge base…" oninput="renderKBP()"/>
-        <button class="bsm bsm-org" onclick="openKBModal()">+ Add Entry</button>
+        <button class="bsm bsm-org admin-only" onclick="openKBModal()">+ Add Entry</button>
       </div>
       <div class="kb-grid" id="kb-pg"></div>
     </div>
@@ -389,7 +392,7 @@ function raiseTicketToAkash(ticketId, question) {
   <!-- TICKETS -->
   <div class="pg" id="pg-tickets">
     <div class="pi">
-      <div class="ph"><h2>Tickets</h2><p>Questions raised by the team — auto-summary emailed to admin at 8 PM IST daily</p></div>
+      <div class="ph"><h2>My Tickets</h2><p id="tk-ph">Your raised tickets and admin responses</p></div>
       <div class="tbl">
         <div class="tbl-h"><div>ID</div><div>Question</div><div>Raised by</div><div>Status</div><div>Action</div></div>
         <div id="tk-b"></div>
@@ -436,6 +439,22 @@ function raiseTicketToAkash(ticketId, question) {
         <div class="dc"><h3>Questions Over Time (Last 7 Days)</h3><canvas id="ch-q" style="max-height:190px"></canvas></div>
         <div class="dc"><h3>Top Asked Topics</h3><div id="top-q"></div></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="mb" id="chpw-modal">
+  <div class="md">
+    <h3>Change Password</h3>
+    <div class="err" id="chpw-err"></div>
+    <div class="suc" id="chpw-suc" style="display:none;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px"></div>
+    <div class="fg"><div class="fl">Current Password</div><input class="fi" type="password" id="pw-old" placeholder="Current password"/></div>
+    <div class="fg"><div class="fl">New Password</div><input class="fi" type="password" id="pw-new" placeholder="New password (min 6 chars)"/></div>
+    <div class="fg"><div class="fl">Confirm New Password</div><input class="fi" type="password" id="pw-confirm" placeholder="Confirm new password"/></div>
+    <div class="md-acts">
+      <button class="bs" onclick="closeModal('chpw-modal')">Cancel</button>
+      <button class="bp" onclick="doChangePw()">Update Password</button>
     </div>
   </div>
 </div>
@@ -682,8 +701,15 @@ function enterPortal() {
   p.classList.add('on');
   document.getElementById('u-av').textContent = CU.name[0].toUpperCase();
   document.getElementById('u-lb').textContent = CU.name + ' · ' + CU.role;
-  document.querySelectorAll('.admin-only').forEach(el => el.style.display = CU.role === 'admin' ? '' : 'none');
+  // Only akash.bansal@shadowfax.in can see admin features
+  const isAdmin = CU.role === 'admin' && CU.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+  // Patch CU role if someone tampered
+  if (CU.role === 'admin' && !isAdmin) CU.role = 'member';
   updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey();
+  // Update ticket page subtitle based on role
+  const tkPh = document.getElementById('tk-ph');
+  if (tkPh) tkPh.textContent = isAdmin ? 'All team tickets — respond and save answers to KB' : 'Your raised tickets and admin responses';
   if (CU.role === 'admin') refreshDash();
   scheduleMailer();
 }
@@ -810,45 +836,71 @@ async function sendMsg() {
     typing.remove();
     addMsg('bot', '⚠️ Could not get a response. Please check your connection and try again.');
   }
-  const m=document.getElementById('msgs');
-  const nd=document.createElement('div');
-  nd.className='tn'; nd.innerHTML=`🎫 Ticket <strong>${tk.id}</strong> logged`;
-  m.appendChild(nd); m.scrollTop=m.scrollHeight;
   if (CU?.role==='admin') refreshDash();
 }
 
-function raiseTicketToAkash(ticketId, question) {
+function markSatisfied(ticketId, fbId) {
   const tk = D.tickets.find(x => x.id === ticketId);
-  if (tk) { tk.escalated = true; save(); }
-  // Mark visually
-  event.target.closest('button').outerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:6px 14px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(0,168,107,.2)">✅ Ticket raised to Akash</span>';
-  // Show confirmation message in chat
+  if (tk) { tk.status = 'closed'; tk.satisfied = true; save(); updateBadges(); }
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">✅ Glad it helped! Ticket auto-closed.</span>';
+}
+
+function markUnsatisfied(ticketId, question, fbId) {
+  const tk = D.tickets.find(x => x.id === ticketId);
+  if (tk) { tk.escalated = true; tk.status = 'open'; save(); updateBadges(); }
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he'll follow up shortly.</span>';
   const m = document.getElementById('msgs');
   const nd = document.createElement('div');
   nd.className = 'tn';
-  nd.style.cssText = 'background:var(--grn-bg);border-color:rgba(0,168,107,.2);color:#1A3C2A;';
-  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal — he'll follow up shortly.`;
-  m.appendChild(nd);
-  m.scrollTop = 99999;
-  updateBadges();
+  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal.`;
+  m.appendChild(nd); m.scrollTop = 99999;
 }
 
 /* TICKETS */
 function renderTK() {
-  const b=document.getElementById('tk-b');
-  if (!D.tickets.length){b.innerHTML='<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets raised yet</div>';return;}
-  b.innerHTML=[...D.tickets].reverse().map(t=>`
-    <div class="tbl-r">
-      <div style="font-family:var(--fm);font-size:12px;color:var(--tx3)">${t.id}</div>
-      <div>${t.question.slice(0,52)}${t.question.length>52?'…':''}</div>
-      <div style="font-size:12px;color:var(--tx2)">${t.user}</div>
-      <div><span class="bdg ${t.status==='open'?'bdg-o':'bdg-c'}">${t.status}</span>${t.escalated?'<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 7px;border-radius:4px;margin-left:5px">↑ Escalated</span>':''}</div>
-      <div>${t.status==='open'&&CU?.role==='admin'?`<button class="cl-btn" onclick="closeTK('${t.id}')">Close</button>`:''}</div>
+  const b = document.getElementById('tk-b');
+  const list = CU?.role === 'admin' ? [...D.tickets].reverse() : [...D.tickets].filter(t => t.user === CU?.name).reverse();
+  if (!list.length) { b.innerHTML = '<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets yet</div>'; return; }
+  b.innerHTML = list.map(t => `
+    <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-family:var(--fm);font-size:12px;color:var(--tx3)">${t.id}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--tx);flex:1">${t.question}</span>
+        <span class="bdg ${t.status==='open'?'bdg-o':'bdg-c'}">${t.status}</span>
+        ${t.escalated ? '<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 7px;border-radius:4px">↑ Escalated</span>' : ''}
+        ${t.satisfied ? '<span style="font-size:10px;font-weight:700;background:var(--grn-bg);color:var(--grn);padding:2px 7px;border-radius:4px">👍 Satisfied</span>' : ''}
+      </div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:${t.adminReply || (CU?.role==='admin' && t.status==='open') ? '10px' : '0'}">By ${t.user} · ${new Date(t.ts).toLocaleDateString('en-IN')}</div>
+      ${t.adminReply ? `<div style="background:var(--grn-bg);border:1px solid rgba(26,60,42,.15);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--tx);margin-bottom:8px"><strong style="font-size:11px;color:var(--grn);text-transform:uppercase;letter-spacing:.04em">Akash's Response</strong><br>${t.adminReply}</div>` : ''}
+      ${CU?.role==='admin' && t.status==='open' ? `
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="rep-${t.id}" class="fi" style="flex:1;font-size:13px;padding:8px 12px" placeholder="Type your response and save to KB…"/>
+          <button onclick="adminReply('${t.id}')" class="bsm bsm-org">Send & Save to KB</button>
+          <button onclick="closeTK('${t.id}')" class="bsm bsm-gh">Close</button>
+        </div>` : ''}
     </div>`).join('');
 }
-function closeTK(id){
-  const t=D.tickets.find(x=>x.id===id);
-  if(t){t.status='closed';save();renderTK();updateBadges();if(CU?.role==='admin')refreshDash();}
+function closeTK(id) {
+  const t = D.tickets.find(x => x.id === id);
+  if (t) { t.status = 'closed'; save(); renderTK(); updateBadges(); if (CU?.role==='admin') refreshDash(); }
+}
+function adminReply(id) {
+  const t = D.tickets.find(x => x.id === id);
+  const reply = document.getElementById('rep-' + id)?.value.trim();
+  if (!reply) { alert('Please type a response.'); return; }
+  t.adminReply = reply;
+  t.status = 'closed';
+  // Auto-save Q&A to knowledge base
+  const existing = D.faqs.find(f => f.q.toLowerCase() === t.question.toLowerCase());
+  if (!existing) {
+    D.faqs.push({ id: Date.now(), tag: 'Admin Response', q: t.question, a: reply, hits: 0 });
+  } else {
+    existing.a = reply;
+  }
+  save(); renderTK(); renderKBS(); renderKBP(); updateBadges();
+  if (CU?.role==='admin') refreshDash();
 }
 
 /* APPROVALS */
@@ -899,6 +951,33 @@ function updateBadges() {
   ab.style.display=pend?'flex':'none';ab.textContent=pend;
   renderTK();renderAP();
 }
+function openChangePw() {
+  document.getElementById('chpw-err').style.display='none';
+  document.getElementById('chpw-suc').style.display='none';
+  document.getElementById('pw-old').value='';
+  document.getElementById('pw-new').value='';
+  document.getElementById('pw-confirm').value='';
+  document.getElementById('chpw-modal').classList.add('on');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('on'); }
+function doChangePw() {
+  const oldPw = document.getElementById('pw-old').value;
+  const newPw = document.getElementById('pw-new').value;
+  const confirmPw = document.getElementById('pw-confirm').value;
+  const err = document.getElementById('chpw-err');
+  const suc = document.getElementById('chpw-suc');
+  err.style.display='none'; suc.style.display='none';
+  if (oldPw !== CU.pass) { err.style.display='block'; err.textContent='Current password is incorrect.'; return; }
+  if (newPw.length < 6) { err.style.display='block'; err.textContent='New password must be at least 6 characters.'; return; }
+  if (newPw !== confirmPw) { err.style.display='block'; err.textContent='Passwords do not match.'; return; }
+  CU.pass = newPw;
+  const m = D.members.find(x => x.id === CU.id);
+  if (m) m.pass = newPw;
+  save();
+  suc.style.display='block'; suc.textContent='✅ Password updated successfully!';
+  setTimeout(() => closeModal('chpw-modal'), 1500);
+}
+
 // Auto-login from session or check invite token
 const sessionUser = loadSession();
 if (sessionUser) {
