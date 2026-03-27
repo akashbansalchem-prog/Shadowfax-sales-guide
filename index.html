@@ -701,16 +701,16 @@ function enterPortal() {
   p.classList.add('on');
   document.getElementById('u-av').textContent = CU.name[0].toUpperCase();
   document.getElementById('u-lb').textContent = CU.name + ' · ' + CU.role;
-  // Only akash.bansal@shadowfax.in can see admin features
-  const isAdmin = CU.role === 'admin' && CU.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  // Only akash.bansal@shadowfax.in can be admin — lock down any tampering
+  if (CU.role === 'admin' && CU.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    CU.role = 'member';
+  }
+  const isAdmin = CU.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && CU.role === 'admin';
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-  // Patch CU role if someone tampered
-  if (CU.role === 'admin' && !isAdmin) CU.role = 'member';
   updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey();
-  // Update ticket page subtitle based on role
   const tkPh = document.getElementById('tk-ph');
   if (tkPh) tkPh.textContent = isAdmin ? 'All team tickets — respond and save answers to KB' : 'Your raised tickets and admin responses';
-  if (CU.role === 'admin') refreshDash();
+  if (isAdmin) refreshDash();
   scheduleMailer();
 }
 
