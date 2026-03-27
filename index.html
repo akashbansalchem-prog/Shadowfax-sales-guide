@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<!-- 
+  SHADOWFAX SALES GUIDE — NETLIFY DEPLOYMENT
+  ============================================
+  HOW TO UPDATE (30 seconds):
+  1. Make changes here via Claude
+  2. Go to netlify.com → your site → Deploys
+  3. Drag & drop this new HTML file
+  4. Done — all users get the update on next refresh (no re-download needed)
+  
+  HOW TO DEPLOY FIRST TIME:
+  1. Go to netlify.com → "Add new site" → "Deploy manually"
+  2. Drag & drop this file
+  3. You get a URL like: https://your-site.netlify.app
+  4. Share that URL with your team — they bookmark it once, forever
+  
+  ADMIN LOGIN: akash.bansal@shadowfax.in / admin@123
+  KB VERSION: Bump KB_VERSION constant in JS to push KB updates to all users
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Shadowfax Sales Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Shadowfax Brand: Deep Green primary, Yellow-Green accent */
+  --org:#1A3C2A;--org-dk:#112618;--org-lt:#EBF5EE;--org-mid:#C6E040;
+  --white:#FFFFFF;--bg:#F5F7F5;--s1:#FFFFFF;--s2:#EFF4EC;--s3:#E2EDE0;
+  --bd:#D4E3CF;--bd2:#B0C9AA;
+  --tx:#1A3C2A;--tx2:#4D6B58;--tx3:#889E90;
+  --grn:#1A3C2A;--grn-bg:#EBF5EE;
+  --red:#D32F2F;--red-bg:#FDECEA;
+  --amb:#C6E040;--amb-bg:#F4FBDA;
+  --blu:#1A73E8;--blu-bg:#EAF2FF;
+  --ylw:#C6E040;--ylw-dk:#9DB828;--ylw-lt:#F4FBDA;
+  --r:12px;--rs:8px;--rx:6px;
+  --fn:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);
+  --shm:0 4px 12px rgba(0,0,0,.1),0 1px 3px rgba(0,0,0,.05);
+}
+body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* AUTH */
+.aw{min-height:100vh;display:flex}
+.al{width:400px;flex-shrink:0;background:#1B3A2D;padding:44px 40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.al::before{content:'';position:absolute;top:-100px;right:-100px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.07)}
+.al::after{content:'';position:absolute;bottom:-80px;left:-50px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.05)}
+.al-brand{position:relative;z-index:1}
+.al-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px}
+.al-icon{width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.al-icon svg{width:22px;height:22px;fill:white}
+.al-name{font-size:18px;font-weight:700;color:white;letter-spacing:-.3px}
+.al-name span{font-weight:300;opacity:.75}
+.al-tagline{font-size:26px;font-weight:700;color:white;line-height:1.35;letter-spacing:-.5px}
+.al-tagline em{font-style:normal;opacity:.65;font-weight:400;font-size:13px;display:block;margin-top:8px;letter-spacing:0}
+.al-stats{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px}
+.al-stat{background:rgba(255,255,255,.14);border-radius:var(--rs);padding:12px 16px;border:1px solid rgba(255,255,255,.18)}
+.al-stat-v{font-size:18px;font-weight:700;color:white}
+.al-stat-l{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px}
+.ar{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+.ac{width:100%;max-width:390px}
+.ac-title{font-size:22px;font-weight:700;color:var(--tx);margin-bottom:4px;letter-spacing:-.4px}
+.ac-sub{font-size:13px;color:var(--tx2);margin-bottom:28px;line-height:1.6}
+
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.fi{width:100%;padding:12px 14px;background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-size:14px;font-family:var(--fn);transition:border-color .15s,box-shadow .15s}
+.fi:focus{outline:none;border-color:#1B3A2D;box-shadow:0 0 0 3px rgba(27,58,45,.1)}
+.fi::placeholder{color:var(--tx3)}
+.fsl{width:100%;padding:12px 14px;background:var(--s1);border:1.5px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-size:14px;font-family:var(--fn);appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='%236B7385' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:border-color .15s}
+.fsl:focus{outline:none;border-color:#1B3A2D}
+.ph-row{display:flex;gap:8px}
+.ph-pfx{padding:12px 14px;background:var(--s2);border:1.5px solid var(--bd);border-radius:var(--rs);font-size:14px;color:var(--tx2);font-weight:500;white-space:nowrap}
+.bp{width:100%;padding:13px;background:#C8E63C;color:#1B3A2D;border:none;border-radius:var(--rs);font-family:var(--fn);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;letter-spacing:.01em}
+.bp:hover{background:#A8C020}
+.bp:active{transform:scale(.99)}
+.bs{width:100%;padding:12px;background:var(--s1);color:var(--tx2);border:1.5px solid var(--bd);border-radius:var(--rs);font-family:var(--fn);font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;margin-top:10px}
+.bs:hover{border-color:var(--bd2);color:var(--tx);background:var(--s2)}
+.sw{text-align:center;margin-top:18px;font-size:13px;color:var(--tx2)}
+.sw a{color:#1B3A2D;cursor:pointer;font-weight:600;text-decoration:none}
+.err{background:var(--red-bg);border:1px solid rgba(229,57,53,.25);color:var(--red);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;display:none}
+.suc{background:var(--grn-bg);border:1px solid rgba(0,168,107,.25);color:var(--grn);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;display:none}
+.otp-fi{text-align:center;font-family:var(--fm);font-size:22px;font-weight:500;letter-spacing:6px}
+.otp-info{background:var(--blu-bg);border:1px solid rgba(26,115,232,.2);color:var(--blu);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px}
+
+/* PORTAL */
+#portal{display:none;height:100vh;flex-direction:column}
+#portal.on{display:flex}
+#topbar{height:54px;background:var(--white);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 20px;gap:4px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+#tb-brand{display:flex;align-items:center;gap:9px;margin-right:14px;padding-right:14px;border-right:1px solid var(--bd)}
+#tb-ic{width:30px;height:30px;background:#1B3A2D;border-radius:7px;display:flex;align-items:center;justify-content:center}
+#tb-ic svg{width:16px;height:16px;fill:white}
+#tb-nm{font-size:14px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+#tb-nm span{color:#A8C020}
+.nb{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:var(--rx);border:none;background:transparent;color:var(--tx2);font-family:var(--fn);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;position:relative;white-space:nowrap}
+.nb:hover{background:var(--s2);color:var(--tx)}
+.nb.on{background:#EDF5F0;color:#1B3A2D;font-weight:600}
+.nb svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nbdg{position:absolute;top:3px;right:3px;min-width:15px;height:15px;background:var(--red);color:white;border-radius:8px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+#tb-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+#tb-u{font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:7px}
+.uav{width:28px;height:28px;border-radius:50%;background:var(--org);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+#lo-btn{padding:6px 13px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);color:var(--tx2);font-size:12px;cursor:pointer;font-family:var(--fn);font-weight:500;transition:all .15s}
+#lo-btn:hover{border-color:var(--bd2);color:var(--tx);background:var(--s2)}
+
+.pg{display:none;flex:1;overflow:hidden}
+.pg.on{display:flex}
+.pi{flex:1;overflow-y:auto;padding:26px}
+.ph{margin-bottom:22px}
+.ph h2{font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.3px;margin-bottom:3px}
+.ph p{font-size:13px;color:var(--tx2)}
+
+/* CHAT */
+#pg-chat{flex-direction:row}
+#csb{width:265px;background:var(--white);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0}
+#csb-h{padding:14px;border-bottom:1px solid var(--bd)}
+#csb-h h3{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:2px}
+#csb-h p{font-size:11px;color:var(--tx3)}
+#kb-s{margin:9px;padding:9px 12px;background:var(--s2);border:1.5px solid var(--bd);border-radius:var(--rx);color:var(--tx);font-size:12px;font-family:var(--fn);width:calc(100% - 18px);transition:border-color .15s}
+#kb-s:focus{outline:none;border-color:var(--org)}
+#kb-l{flex:1;overflow-y:auto;padding:4px 7px 7px}
+.kbi{padding:10px;border-radius:var(--rx);cursor:pointer;margin-bottom:2px;border:1px solid transparent;transition:all .12s}
+.kbi:hover{background:var(--s2)}
+.kbi-q{font-size:12px;font-weight:500;color:var(--tx);line-height:1.4;margin-bottom:4px}
+.kbi-tg{font-size:10px;color:var(--org);background:var(--org-lt);padding:2px 7px;border-radius:4px;display:inline-block;font-weight:500}
+#add-kb-b{margin:8px;padding:9px;background:var(--org-lt);border:1.5px dashed var(--org-mid);border-radius:var(--rx);color:var(--org);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:all .15s}
+#add-kb-b:hover{background:var(--org-mid)}
+#cm{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+#ch{padding:13px 18px;border-bottom:1px solid var(--bd);background:var(--white);display:flex;align-items:center;gap:9px;flex-shrink:0}
+.sdot{width:8px;height:8px;background:var(--grn);border-radius:50%;flex-shrink:0}
+#ch h2{font-size:14px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+#ch span{font-size:11px;color:var(--tx3);margin-left:auto;background:var(--s2);padding:3px 10px;border-radius:20px}
+#msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:9px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.mav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.mav.bot{background:var(--org);color:white}
+.mav.user{background:var(--s3);color:var(--tx2);border:1.5px solid var(--bd)}
+.bbl{max-width:72%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.7;box-shadow:var(--sh)}
+.msg.bot .bbl{background:var(--white);color:var(--tx);border-radius:4px 16px 16px 16px;border:1px solid var(--bd)}
+.msg.user .bbl{background:var(--org);color:white;border-radius:16px 4px 16px 16px}
+.msg.typing .bbl{color:var(--tx3);font-style:italic;background:var(--white);border:1px solid var(--bd)}
+.tn{background:var(--amb-bg);border:1px solid rgba(245,158,11,.22);border-radius:var(--rx);padding:7px 12px;font-size:12px;color:#92640a;line-height:1.5}
+#inp-r{padding:13px 18px;border-top:1px solid var(--bd);background:var(--white);display:flex;gap:9px;align-items:center;flex-shrink:0}
+#ui{flex:1;padding:10px 15px;font-size:13px;border:1.5px solid var(--bd);border-radius:24px;background:var(--s2);color:var(--tx);font-family:var(--fn);transition:all .15s}
+#ui:focus{outline:none;border-color:var(--org);background:var(--white);box-shadow:0 0 0 3px rgba(255,102,0,.1)}
+#sb{width:38px;height:38px;border-radius:50%;border:none;background:var(--org);cursor:pointer;color:white;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(255,102,0,.28)}
+#sb:hover{background:var(--org-dk);transform:scale(1.05)}
+
+/* KB PAGE */
+.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.kbc{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px;box-shadow:var(--sh);transition:box-shadow .15s}
+.kbc:hover{box-shadow:var(--shm)}
+.kbc-tg{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--org);background:var(--org-lt);padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:10px}
+.kbc-q{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:7px;line-height:1.4}
+.kbc-a{font-size:13px;color:var(--tx2);line-height:1.7}
+.kbc-ft{display:flex;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--bd)}
+
+function raiseTicketToAkash(ticketId, question) {
+  const tk = D.tickets.find(x => x.id === ticketId);
+  if (tk) { tk.escalated = true; save(); }
+  // Mark visually
+  event.target.closest('button').outerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:6px 14px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(0,168,107,.2)">✅ Ticket raised to Akash</span>';
+  // Show confirmation message in chat
+  const m = document.getElementById('msgs');
+  const nd = document.createElement('div');
+  nd.className = 'tn';
+  nd.style.cssText = 'background:var(--grn-bg);border-color:rgba(0,168,107,.2);color:#1A3C2A;';
+  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal — he'll follow up shortly.`;
+  m.appendChild(nd);
+  m.scrollTop = 99999;
+  updateBadges();
+}
+
+/* TICKETS */
+.tbl{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.tbl-h{display:grid;grid-template-columns:76px 1fr 130px 100px 88px;padding:11px 16px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);background:var(--s2)}
+.tbl-r{display:grid;grid-template-columns:76px 1fr 130px 100px 88px;padding:12px 16px;border-bottom:1px solid var(--bd);font-size:13px;align-items:center;transition:background .1s}
+.tbl-r:last-child{border-bottom:none}
+.tbl-r:hover{background:var(--s2)}
+.bdg{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.bdg-o{background:var(--amb-bg);color:#92640a}
+.bdg-c{background:var(--grn-bg);color:var(--grn)}
+.cl-btn{padding:5px 11px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);color:var(--tx2);font-size:11px;cursor:pointer;font-family:var(--fn);font-weight:500;transition:all .15s}
+.cl-btn:hover{background:var(--grn-bg);color:var(--grn);border-color:var(--grn)}
+
+/* APPROVALS */
+.apc{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh)}
+.apav{width:40px;height:40px;border-radius:50%;background:var(--org-lt);border:2px solid var(--org-mid);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--org);flex-shrink:0}
+.api{flex:1}
+.apn{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.apm{font-size:12px;color:var(--tx2)}
+.bsm{padding:7px 14px;font-size:12px;border-radius:var(--rx);border:none;cursor:pointer;font-family:var(--fn);font-weight:600;transition:all .15s}
+.bsm-org{background:var(--org);color:white}
+.bsm-org:hover{background:var(--org-dk)}
+.bsm-gh{background:transparent;border:1.5px solid var(--bd);color:var(--tx2)}
+.bsm-gh:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
+/* DASHBOARD */
+.ds-g{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.sc{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.sc-ic{width:34px;height:34px;border-radius:var(--rx);display:flex;align-items:center;justify-content:center;margin-bottom:11px}
+.sc-ic svg{width:17px;height:17px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sc-lb{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:5px}
+.sc-vl{font-size:26px;font-weight:700;color:var(--tx);letter-spacing:-.5px}
+.sc-sb{font-size:12px;color:var(--tx2);margin-top:3px}
+.dr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dc{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.dc h3{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px;letter-spacing:-.2px}
+.tqi{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.tqi:last-child{border-bottom:none}
+.tqr{font-size:15px;font-weight:700;color:var(--tx3);width:20px}
+.tqt{flex:1;font-size:12px;color:var(--tx2)}
+.tqh{font-size:11px;color:var(--org);font-weight:700;background:var(--org-lt);padding:2px 8px;border-radius:5px}
+
+/* MODAL */
+.mb{position:fixed;inset:0;background:rgba(26,31,54,.42);display:none;align-items:center;justify-content:center;z-index:999;padding:20px;backdrop-filter:blur(2px)}
+.mb.on{display:flex}
+.md{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:26px;width:100%;max-width:460px;box-shadow:var(--shm)}
+.md h3{font-size:17px;font-weight:700;color:var(--tx);letter-spacing:-.3px;margin-bottom:18px}
+.md textarea{width:100%;padding:10px 12px;background:var(--s2);border:1.5px solid var(--bd);border-radius:var(--rx);color:var(--tx);font-size:13px;font-family:var(--fn);resize:vertical;min-height:80px;margin-bottom:11px;transition:border-color .15s}
+.md textarea:focus{outline:none;border-color:var(--org)}
+.md-acts{display:flex;gap:9px;margin-top:7px}
+.md-acts .bp,.md-acts .bs{flex:1;margin-top:0}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--tx);color:white;padding:12px 16px;border-radius:var(--rs);font-size:13px;font-weight:500;box-shadow:var(--shm);z-index:9999;display:none;align-items:center;gap:9px;max-width:340px}
+.toast svg{width:16px;height:16px;flex-shrink:0;stroke:var(--grn);fill:none;stroke-width:2;stroke-linecap:round}
+.toast.on{display:flex}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="sc-login" class="aw">
+  <div class="al">
+    <div class="al-brand">
+      <div class="al-logo">
+        <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="al-name">Shadowfax <span>Portal</span></div>
+      </div>
+      <div class="al-tagline">Shadowfax<br>Sales Guide<em>Your go-to guide for Shadowfax sales ops</em></div>
+    </div>
+    <div class="al-stats">
+      <div class="al-stat"><div class="al-stat-v">AI-Powered</div><div class="al-stat-l">Instant answers for your team</div></div>
+      <div class="al-stat"><div class="al-stat-v">Invite-Only</div><div class="al-stat-l">Access via admin invite link</div></div>
+    </div>
+  </div>
+  <div class="ar">
+    <div class="ac">
+      <div class="ac-title">Sign In</div>
+      <div class="ac-sub">Use your email and password to access the portal</div>
+      <div class="err" id="le"></div>
+      <div class="fg"><div class="fl">Work Email</div><input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="fg"><div class="fl">Password</div><input class="fi" type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="bp" onclick="doLogin()">Sign In</button>
+      <div style="margin-top:14px;font-size:12px;color:var(--tx3);text-align:center">Don't have access? Ask your admin for an invite link.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCEPT INVITE -->
+<div id="sc-invite" class="aw" style="display:none">
+  <div class="al">
+    <div class="al-brand">
+      <div class="al-logo">
+        <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="al-name">Shadowfax <span>Portal</span></div>
+      </div>
+      <div class="al-tagline">You're Invited!<em>Set up your account to get started</em></div>
+    </div>
+    <div class="al-stats">
+      <div class="al-stat"><div class="al-stat-v">Secure</div><div class="al-stat-l">Invite tied to your email only</div></div>
+    </div>
+  </div>
+  <div class="ar">
+    <div class="ac">
+      <div class="ac-title">Set Up Account</div>
+      <div class="ac-sub" id="inv-sub">You've been invited to join the Shadowfax Sales Guide</div>
+      <div class="err" id="inv-err"></div>
+      <div class="fg"><div class="fl">Full Name</div><input class="fi" type="text" id="inv-name" placeholder="Your full name"/></div>
+      <div class="fg"><div class="fl">Email</div><input class="fi" type="email" id="inv-email" placeholder="you@shadowfax.in" readonly style="background:var(--s2);color:var(--tx2)"/></div>
+      <div class="fg"><div class="fl">Set Password</div><input class="fi" type="password" id="inv-pass" placeholder="Choose a password (min 6 chars)"/></div>
+      <div class="fg"><div class="fl">Department</div>
+        <select class="fsl" id="inv-dept">
+          <option value="">Select department</option>
+          <option>FM - First Mile</option><option>LM - Last Mile</option>
+          <option>Tech</option><option>Ops</option><option>Finance</option><option>HR</option><option>Other</option>
+        </select>
+      </div>
+      <button class="bp" onclick="acceptInvite()">Create Account & Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- PORTAL -->
+<div id="portal">
+  <div id="topbar">
+    <div id="tb-brand">
+      <div id="tb-ic"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div id="tb-nm">Shadowfax <span>Sales Guide</span></div>
+    </div>
+    <button class="nb on" id="nav-chat" onclick="showPg('chat')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat
+    </button>
+    <button class="nb" id="nav-kb" onclick="showPg('kb')">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Knowledge Base
+    </button>
+    <button class="nb" id="nav-tickets" onclick="showPg('tickets')">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>Tickets
+      <span class="nbdg" id="n-tk" style="display:none">0</span>
+    </button>
+    <button class="nb admin-only" id="nav-approvals" onclick="showPg('approvals')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Approvals
+      <span class="nbdg" id="n-ap" style="display:none">0</span>
+    </button>
+    <button class="nb admin-only" id="nav-dashboard" onclick="showPg('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+    </button>
+    <div id="tb-r">
+      <div id="tb-u"><div class="uav" id="u-av">?</div><span id="u-lb"></span></div>
+      <button id="lo-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+
+  <!-- ASK AKASH AI BANNER -->
+  <div style="background:linear-gradient(90deg,#1A3C2A 0%,#2A5C3A 100%);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <div style="width:30px;height:30px;border-radius:50%;background:#C6E040;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🤖</div>
+    <div>
+      <span style="font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;color:#ffffff;letter-spacing:-.1px">Ask Akash AI</span>
+      <span style="font-family:DM Sans,sans-serif;font-size:12px;color:rgba(255,255,255,.7);margin-left:10px">Powered by Shadowfax Sales Knowledge Base</span>
+    </div>
+    <div style="margin-left:auto;background:#C6E040;color:#1A3C2A;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.04em">LIVE</div>
+  </div>
+  <!-- CHAT -->
+  <div class="pg on" id="pg-chat">
+    <div id="csb">
+      <div id="csb-h"><h3>Knowledge Base</h3><p id="kb-cl">0 entries</p></div>
+      <input id="kb-s" type="text" placeholder="Search topics…" oninput="renderKBS()"/>
+      <div id="kb-l"></div>
+      <button id="add-kb-b" onclick="openKBModal()">+ Add Q&amp;A Entry</button>
+    </div>
+    <div id="cm">
+      <div id="api-key-banner" style="display:none;background:#FEF9EC;border-bottom:1px solid rgba(245,158,11,.25);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <span style="font-size:13px;color:#92640a;flex:1">⚠️ <strong>API key not set.</strong> Enter your Anthropic API key to enable AI answers.</span>
+        <input id="api-key-input" type="password" placeholder="sk-ant-..." style="padding:7px 12px;border:1.5px solid #f59e0b;border-radius:6px;font-size:12px;font-family:var(--fn);width:280px;background:white"/>
+        <button onclick="saveApiKey()" style="padding:7px 14px;background:#1A3C2A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">Save Key</button>
+      </div>
+      <div id="ch">
+        <div class="sdot"></div>
+        <h2>Sales Guide</h2>
+        <span id="kb-cc">Loading…</span>
+      </div>
+      <div id="msgs">
+        <div class="msg bot">
+          <div class="mav bot">SF</div>
+          <div class="bbl">👋 Hi! I'm your <strong>Shadowfax Sales Guide Assistant</strong>. I have detailed knowledge about First Mile operations — pickup models, barcode issues, courier services, cutoff adherence, Delhi volume splits, and more.<br><br>Ask me anything!</div>
+        </div>
+      </div>
+      <div id="inp-r">
+        <input id="ui" type="text" placeholder="Ask your sales question…" onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button id="sb" onclick="sendMsg()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KB -->
+  <div class="pg" id="pg-kb">
+    <div class="pi">
+      <div class="ph"><h2>Knowledge Base</h2><p>All FM operational Q&amp;A — search, browse, or add new entries</p></div>
+      <div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">
+        <input id="kb-ps" class="fi" style="flex:1" placeholder="Search knowledge base…" oninput="renderKBP()"/>
+        <button class="bsm bsm-org" onclick="openKBModal()">+ Add Entry</button>
+      </div>
+      <div class="kb-grid" id="kb-pg"></div>
+    </div>
+  </div>
+
+  <!-- TICKETS -->
+  <div class="pg" id="pg-tickets">
+    <div class="pi">
+      <div class="ph"><h2>Tickets</h2><p>Questions raised by the team — auto-summary emailed to admin at 8 PM IST daily</p></div>
+      <div class="tbl">
+        <div class="tbl-h"><div>ID</div><div>Question</div><div>Raised by</div><div>Status</div><div>Action</div></div>
+        <div id="tk-b"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROVALS -->
+  <div class="pg" id="pg-approvals">
+    <div class="pi">
+      <div class="ph"><h2>Members & Invites</h2><p>Send invite links or manage existing members</p></div>
+      <!-- INVITE PANEL -->
+      <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:18px;box-shadow:var(--sh)">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px">📨 Send Invite Link</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px"><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Email</div><input class="fi" type="email" id="inv-to" placeholder="colleague@shadowfax.in"/></div>
+          <div style="width:160px"><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Department</div>
+            <select class="fsl" id="inv-dept-admin">
+              <option value="">Select dept</option>
+              <option>FM - First Mile</option><option>LM - Last Mile</option>
+              <option>Tech</option><option>Ops</option><option>Finance</option><option>HR</option><option>Other</option>
+            </select>
+          </div>
+          <button class="bsm bsm-org" style="height:42px;padding:0 18px" onclick="createAndCopyInvite()">Generate & Copy Link</button>
+        </div>
+        <div id="inv-result" style="display:none;margin-top:12px;padding:10px 12px;background:var(--grn-bg);border:1px solid rgba(0,168,107,.2);border-radius:var(--rx);font-size:12px;color:var(--grn)"></div>
+      </div>
+      <!-- MEMBERS LIST -->
+      <div id="ap-l" style="display:flex;flex-direction:column;gap:11px"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="pg" id="pg-dashboard">
+    <div class="pi">
+      <div class="ph"><h2>Dashboard</h2><p>Usage overview and analytics</p></div>
+      <div class="ds-g">
+        <div class="sc"><div class="sc-ic" style="background:var(--org-lt)"><svg viewBox="0 0 24 24" style="stroke:var(--org)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="sc-lb">Total Questions</div><div class="sc-vl" id="d-tot">0</div><div class="sc-sb">Asked via chat</div></div>
+        <div class="sc"><div class="sc-ic" style="background:var(--blu-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--blu)"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="sc-lb">KB Entries</div><div class="sc-vl" id="d-kb">0</div><div class="sc-sb">In knowledge base</div></div>
+        <div class="sc"><div class="sc-ic" style="background:var(--amb-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--amb)"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg></div><div class="sc-lb">Open Tickets</div><div class="sc-vl" id="d-op">0</div><div class="sc-sb">Pending resolution</div></div>
+        <div class="sc"><div class="sc-ic" style="background:var(--grn-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--grn)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="sc-lb">Active Members</div><div class="sc-vl" id="d-mb">0</div><div class="sc-sb">Approved users</div></div>
+      </div>
+      <div class="dr">
+        <div class="dc"><h3>Questions Over Time (Last 7 Days)</h3><canvas id="ch-q" style="max-height:190px"></canvas></div>
+        <div class="dc"><h3>Top Asked Topics</h3><div id="top-q"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KB MODAL -->
+<div class="mb" id="kb-modal">
+  <div class="md">
+    <h3>Add Knowledge Base Entry</h3>
+    <div class="fg">
+      <div class="fl">Category</div>
+      <select class="fsl" id="m-tag" style="margin-bottom:11px">
+        <option>FM – Pickup Models</option><option>FM – Barcode</option>
+        <option>FM – Cutoff & Priority</option><option>FM – Courier Service</option>
+        <option>FM – Ops Remarks</option><option>FM – Serviceability</option><option>General</option>
+      </select>
+    </div>
+    <textarea id="m-q" placeholder="Question / Problem Statement…"></textarea>
+    <textarea id="m-a" placeholder="Answer / Resolution…" style="min-height:110px"></textarea>
+    <div class="md-acts">
+      <button class="bs" onclick="closeKBModal()">Cancel</button>
+      <button class="bp" onclick="saveKB()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+const STORE = 'sfx_v6';
+const STORE_SESSION = 'sfx_session_v6';
+const KB_VERSION = 6; // bump this number whenever you update the KB — forces all users to get new KB entries
+const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
+
+function defData() {
+  return {
+    config: { apiKey: '' },
+    members: [{ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' }],
+    tickets: [], questionLog: [],
+    faqs: [
+      {id:1,tag:'FM – Pickup Models',q:'What are the two pickup models and how do they differ?',a:'Shadowfax FM has two models:\n1. Marketplace Pickup – Client-specific serviceability. Orders can be picked by both models without movement. For DC visibility, orders can be moved via allocation engine config (contact Sudipta).\n2. Warehouse Pickup – Universal serviceability. If open for one client, it\'s live for all others. Cannot be picked via marketplace model.',hits:0},
+      {id:2,tag:'FM – Pickup Models',q:'How to solve pickup confusion between warehouse and marketplace model?',a:'A. Marketplace pickup can be done by both models without order movement. For visibility, move to DC via allocation engine config — handled by Sudipta.\nB. Warehouse pickup cannot be done via marketplace model. Long-term fix: move seller/pincode/client to marketplace. Old orders can be moved via Sudipta.\nC. Client can convert any order from marketplace to warehouse by passing flag under "order_type" column.\nD. Warehouse pincode for orders <5kg should be under "regular" order service.\nE. Marketplace to warehouse switch requires minimum 100 orders.',hits:0},
+      {id:3,tag:'FM – Pickup Models',q:'How to move a seller or client to marketplace model?',a:'You can move any seller, or seller with a particular pincode, or client with a particular pincode to the marketplace model. This helps with long-term planning. Old orders can be moved via Sudipta.',hits:0},
+      {id:4,tag:'FM – Pickup Models',q:'What is the minimum order requirement to switch from marketplace to warehouse model?',a:'Minimum 100 orders are required to move marketplace orders to warehouse model. Always check if order volume allows before initiating the switch.',hits:0},
+      {id:5,tag:'FM – Pickup Models',q:'How to handle order type conversion between marketplace and warehouse?',a:'Client can convert any order from marketplace to warehouse model by passing the appropriate flag under the "order_type" column in the order data.',hits:0},
+      {id:6,tag:'FM – Ops Remarks',q:'What to do when there is no immediate solution due to dependency?',a:'When no immediate solve is available due to dependency, options after aligning with team:\n1. Confirm manual pickup\n2. Book porter\n3. Send rider from FM or DC\nAlways align stakeholders before proceeding.',hits:0},
+      {id:7,tag:'FM – Barcode',q:'Why does barcode scanning fail and how to fix it?',a:'Barcode scanning issues can happen due to:\n1. Tech glitch\n2. Poor printing quality\n3. Barcode size too large\n\nFix: Reduce the AWB number size. Ensure labels are properly printed before dispatch.',hits:0},
+      {id:8,tag:'FM – Cutoff & Priority',q:'What is the pickup priority for Brands vs SME?',a:'Brands (defined by heavy volume or portfolio): Must be picked up the same day — NO exceptions.\nSME (Small & Medium Enterprises): Must be picked up within 2 days.',hits:0},
+      {id:9,tag:'FM – Cutoff & Priority',q:'What is the general pickup window and how does SME cutoff work?',a:'SME does not have a cutoff feature without extra charges.\nGeneral pickup window: 12 PM – 6 PM.\nAlways aim to pick within this window to avoid delays.',hits:0},
+      {id:10,tag:'FM – Cutoff & Priority',q:'How to handle large shipments that are new business?',a:'If shipments are large, it likely indicates new business. Minor incentives are acceptable in such cases to ensure pickup happens smoothly.',hits:0},
+      {id:11,tag:'FM – Cutoff & Priority',q:'How important is cutoff adherence for Prime business?',a:'For Prime business, cutoff adherence is CRUCIAL. Different services can be committed based on distance and ask, but adherence must be very high. Minimal flexibility here.',hits:0},
+      {id:12,tag:'FM – Cutoff & Priority',q:'How to handle Delhi volume above 1500 orders per day?',a:'For Delhi BAU volume above 1.5k orders/day, route pickups from Bilaspur — even if the seller has NDD or Prime load.\nBest practice: Split volume between Bamnoli and Bilaspur to balance load effectively.',hits:0},
+      {id:13,tag:'FM – Courier Service',q:'What is the "Flash" courier service and what should we call it internally?',a:'"Flash" courier service name is now discarded. Must be booked via Shadowfax 360 portal. Internally, always call it "Internal Courier Service" — the Flash name causes confusion because multiple services share the same name.',hits:0},
+      {id:14,tag:'FM – Courier Service',q:'What are the pickup requirements for Internal Courier Service orders?',a:'For Internal Courier Service pickups:\n1. Proper photo documentation must be taken at pickup\n2. Label must be pasted correctly\nBoth must be clearly communicated to FM or Ops team before pickup.',hits:0},
+      {id:15,tag:'FM – Courier Service',q:'How to handle Internal Courier Service orders to ensure nothing goes wrong?',a:'Internal Courier is a personal courier — very high priority:\n1. Align ALL stakeholders via mail or call before pickup\n2. Zero margin for error — escalate proactively\n3. Ensure proper photo + label pasting at pickup',hits:0},
+      {id:16,tag:'FM – Ops Remarks',q:'Is "connection miss" a valid ops remark?',a:'NO. "Connection miss will happen" is NOT a valid remark because:\n1. It is an ongoing process and cutoff is already aligned\n2. Orders picked outside cutoff automatically move to the next cutoff\n3. Speed mostly remains the same\nDo not accept this as an excuse.',hits:0},
+      {id:17,tag:'FM – Ops Remarks',q:'What is the policy on lost orders?',a:'Losing an order is NOT acceptable at any cost. Zero tolerance policy. Every shipment must be tracked and accounted for. Escalate immediately if an order is at risk of being lost.',hits:0},
+      {id:18,tag:'FM – Serviceability',q:'What is the difference between marketplace and warehouse serviceability?',a:'Marketplace serviceability is CLIENT SPECIFIC — varies per client.\nWarehouse pickup is UNIVERSAL — if open for one client, it is live for all other clients.\nKey distinction when troubleshooting pickup issues.',hits:0}
+    ]
+  };
+}
+
+function load() {
+  try {
+    const r = localStorage.getItem(STORE);
+    if (!r) return defData();
+    const d = JSON.parse(r);
+    // Always sync KB entries from latest code (version-based)
+    if (!d.kbVersion || d.kbVersion < KB_VERSION) {
+      const def = defData();
+      const ids = new Set(d.faqs.map(f=>f.id));
+      def.faqs.forEach(f => { if (!ids.has(f.id)) d.faqs.push(f); });
+      // Update existing FAQ answers if they've changed
+      def.faqs.forEach(df => {
+        const existing = d.faqs.find(f=>f.id===df.id);
+        if (existing) { existing.a = df.a; existing.q = df.q; existing.tag = df.tag; }
+      });
+      d.kbVersion = KB_VERSION;
+    }
+    // Always ensure admin account exists with latest password
+    const admin = d.members.find(m=>m.role==='admin');
+    if (!admin) d.members.unshift({ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' });
+    return d;
+  } catch { return defData(); }
+}
+function save() {
+  D.kbVersion = KB_VERSION;
+  localStorage.setItem(STORE, JSON.stringify(D));
+}
+
+// Session persistence — stay logged in on page refresh
+function saveSession(user) {
+  sessionStorage.setItem(STORE_SESSION, JSON.stringify({ email: user.email, ts: Date.now() }));
+}
+function loadSession() {
+  try {
+    const s = sessionStorage.getItem(STORE_SESSION);
+    if (!s) return null;
+    const { email, ts } = JSON.parse(s);
+    if (Date.now() - ts > 8 * 3600 * 1000) return null; // 8hr session
+    return D.members.find(m => m.email.toLowerCase() === email.toLowerCase() && m.status === 'active') || null;
+  } catch { return null; }
+}
+
+let D = load(), CU = null, CI = null;
+
+function showSc(id) {
+  ['sc-login','sc-invite'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = s===id?'flex':'none';
+  });
+}
+
+/* PASSWORD LOGIN */
+function doLogin() {
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  const err = document.getElementById('le');
+  err.style.display = 'none';
+  if (!email || !pass) { err.style.display='block'; err.textContent='Please enter your email and password.'; return; }
+  const m = D.members.find(x => x.email.toLowerCase()===email && x.pass===pass && x.status==='active');
+  if (!m) { err.style.display='block'; err.textContent='Invalid email or password, or account not yet active.'; return; }
+  CU = m;
+  enterPortal();
+}
+
+/* INVITE SYSTEM */
+function generateInvite(email, dept) {
+  const token = btoa(email + '|' + Date.now() + '|' + Math.random().toString(36).slice(2));
+  D.invites = D.invites || {};
+  D.invites[token] = { email: email.toLowerCase(), dept, ts: Date.now(), used: false };
+  save();
+  const url = window.location.href.split('?')[0] + '?invite=' + token;
+  return url;
+}
+
+function checkInviteToken() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('invite');
+  if (!token) return;
+  D.invites = D.invites || {};
+  const inv = D.invites[token];
+  if (!inv) { alert('Invalid or expired invite link.'); return; }
+  if (inv.used) { alert('This invite link has already been used.'); return; }
+  if (Date.now() - inv.ts > 7 * 24 * 3600 * 1000) { alert('This invite link has expired (7 days).'); return; }
+  // Show invite acceptance screen
+  document.getElementById('sc-login').style.display = 'none';
+  document.getElementById('sc-invite').style.display = 'flex';
+  document.getElementById('inv-email').value = inv.email;
+  document.getElementById('inv-sub').textContent = "You've been invited to join the Shadowfax Sales Guide. Set up your account below.";
+  document.getElementById('inv-email').dataset.token = token;
+}
+
+function acceptInvite() {
+  const name = document.getElementById('inv-name').value.trim();
+  const email = document.getElementById('inv-email').value.trim().toLowerCase();
+  const pass = document.getElementById('inv-pass').value;
+  const dept = document.getElementById('inv-dept').value;
+  const token = document.getElementById('inv-email').dataset.token;
+  const err = document.getElementById('inv-err');
+  err.style.display = 'none';
+  if (!name) { err.style.display='block'; err.textContent='Please enter your full name.'; return; }
+  if (pass.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters.'; return; }
+  if (!dept) { err.style.display='block'; err.textContent='Please select your department.'; return; }
+  if (D.members.find(x => x.email.toLowerCase()===email)) {
+    err.style.display='block'; err.textContent='An account with this email already exists. Please sign in.'; return;
+  }
+  D.members.push({ id: Date.now(), name, email, pass, dept, role:'member', status:'active' });
+  D.invites[token].used = true;
+  save();
+  CU = D.members.find(x => x.email.toLowerCase()===email);
+  // Clean URL
+  window.history.replaceState({}, document.title, window.location.pathname);
+  enterPortal();
+}
+
+function createAndCopyInvite() {
+  const email = document.getElementById('inv-to').value.trim().toLowerCase();
+  const dept = document.getElementById('inv-dept-admin').value;
+  const res = document.getElementById('inv-result');
+  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  if (!dept) { alert('Please select a department.'); return; }
+  if (D.members.find(x => x.email.toLowerCase()===email)) { alert('This email already has an account.'); return; }
+  const link = generateInvite(email, dept);
+  navigator.clipboard.writeText(link).catch(()=>{});
+  res.style.display = 'block';
+  res.innerHTML = `✅ Invite link generated for <strong>${email}</strong> (${dept})<br><span style="font-family:var(--fm);font-size:11px;word-break:break-all;opacity:.8">${link}</span><br><span style="font-size:11px;opacity:.7">Link copied to clipboard! Valid for 7 days.</span>`;
+  document.getElementById('inv-to').value = '';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-')) { alert('Please enter a valid Anthropic API key starting with sk-'); return; }
+  D.config = D.config || {};
+  D.config.apiKey = key;
+  save();
+  document.getElementById('api-key-banner').style.display = 'none';
+  addMsg('bot', '✅ API key saved! You can now ask questions.');
+}
+
+function checkApiKey() {
+  const banner = document.getElementById('api-key-banner');
+  if (!D.config?.apiKey) {
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+/* API HELPER */
+async function apiCall(prompt) {
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key': D.config?.apiKey || '','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:50,system:'Background email system. Reply only: "sent"',messages:[{role:'user',content:prompt}]})
+    });
+    return await r.json();
+  } catch(e){ return null; }
+}
+
+/* PORTAL */
+function doLogout() {
+  CU=null;
+  sessionStorage.removeItem(STORE_SESSION);
+  document.getElementById('portal').classList.remove('on');
+  document.getElementById('portal').style.display='none';
+  const le=document.getElementById('l-email'); if(le) le.value='';
+  const lp=document.getElementById('l-pass'); if(lp) lp.value='';
+  showSc('sc-login');
+}
+
+function enterPortal() {
+  saveSession(CU);
+  // Hide all auth screens safely
+  ['sc-login','sc-reg','sc-invite'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const p = document.getElementById('portal');
+  p.style.display = 'flex';
+  p.classList.add('on');
+  document.getElementById('u-av').textContent = CU.name[0].toUpperCase();
+  document.getElementById('u-lb').textContent = CU.name + ' · ' + CU.role;
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = CU.role === 'admin' ? '' : 'none');
+  updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey();
+  if (CU.role === 'admin') refreshDash();
+  scheduleMailer();
+}
+
+function showPg(n) {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+n).classList.add('on');
+  document.getElementById('nav-'+n).classList.add('on');
+  if (n==='dashboard') refreshDash();
+}
+
+/* 8PM IST MAILER */
+let mScheduled=false;
+function scheduleMailer() {
+  if (mScheduled) return; mScheduled=true;
+  setInterval(async()=>{
+    const now=new Date();
+    const ist=new Date(now.getTime()+5.5*3600000);
+    if (ist.getUTCHours()===20&&ist.getUTCMinutes()===0) {
+      const open=D.tickets.filter(t=>t.status==='open');
+      if (!open.length) return;
+      const lines=open.map(t=>`• ${t.id}: "${t.question.slice(0,60)}…" — ${t.user}`).join('\n');
+      await apiCall(`Send day-end summary:\nTO: ${ADMIN_EMAIL}\nSUBJECT: [Sales Guide] Pending Tickets – ${new Date().toLocaleDateString('en-IN')}\nBODY: Hi Akash,\n\nDay-end summary: ${open.length} pending ticket(s) as of 8:00 PM IST:\n\n${lines}\n\nLog in to the Sales Guide to review and close.\n\nRegards,\nShadowfax Sales Guide (Automated)`);
+      showToast(`📧 Day-end: ${open.length} pending ticket(s) summary sent to ${ADMIN_EMAIL}`);
+    }
+  },60000);
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),5000);
+}
+
+/* KB */
+function renderKBS() {
+  const q=document.getElementById('kb-s').value.toLowerCase();
+  const l=document.getElementById('kb-l');
+  const f=D.faqs.filter(x=>!q||x.q.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q));
+  document.getElementById('kb-cl').textContent=`${D.faqs.length} entries`;
+  document.getElementById('kb-cc').textContent=`${D.faqs.length} KB entries`;
+  l.innerHTML=f.length?f.map(x=>`<div class="kbi" onclick="showKBItem(${x.id})"><div class="kbi-q">${x.q}</div><span class="kbi-tg">${x.tag}</span></div>`).join(''):'<div style="padding:12px;font-size:12px;color:var(--tx3)">No results</div>';
+}
+
+function renderKBP() {
+  const q=(document.getElementById('kb-ps')?.value||'').toLowerCase();
+  const g=document.getElementById('kb-pg');
+  const f=D.faqs.filter(x=>!q||x.q.toLowerCase().includes(q)||x.a.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q));
+  g.innerHTML=f.map(x=>`<div class="kbc"><span class="kbc-tg">${x.tag}</span><div class="kbc-q">${x.q}</div><div class="kbc-a">${x.a.replace(/\n/g,'<br>')}</div>${CU?.role==='admin'?`<div class="kbc-ft"><button class="bsm bsm-gh" onclick="delKB(${x.id})" style="font-size:11px;padding:5px 10px">Delete</button></div>`:''}</div>`).join('')||'<div style="color:var(--tx3);font-size:13px;padding:8px">No entries found.</div>';
+}
+
+function showKBItem(id) {
+  const f=D.faqs.find(x=>x.id===id);
+  if (!f) return;
+  addMsg('bot',`<strong>${f.q}</strong><br><br>${f.a.replace(/\n/g,'<br>')}`);
+  showPg('chat');
+}
+
+function openKBModal(){document.getElementById('kb-modal').classList.add('on');}
+function closeKBModal(){document.getElementById('kb-modal').classList.remove('on');}
+function saveKB() {
+  const q=document.getElementById('m-q').value.trim();
+  const a=document.getElementById('m-a').value.trim();
+  const tag=document.getElementById('m-tag').value;
+  if (!q||!a){alert('Please fill in both question and answer.');return;}
+  D.faqs.push({id:Date.now(),tag,q,a,hits:0});
+  save(); document.getElementById('m-q').value=''; document.getElementById('m-a').value='';
+  closeKBModal(); renderKBS(); renderKBP();
+  if (CU?.role==='admin') refreshDash();
+}
+function delKB(id){
+  if (!confirm('Delete this entry?')) return;
+  D.faqs=D.faqs.filter(f=>f.id!==id);
+  save(); renderKBS(); renderKBP();
+}
+
+/* CHAT */
+function addMsg(role, html) {
+  const m=document.getElementById('msgs');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  const lbl=role==='bot'?'SF':(CU?.name?.[0]?.toUpperCase()||'U');
+  d.innerHTML=`<div class="mav ${role}">${lbl}</div><div class="bbl">${html}</div>`;
+  m.appendChild(d); m.scrollTop=m.scrollHeight; return d;
+}
+
+async function sendMsg() {
+  const inp=document.getElementById('ui');
+  const text=inp.value.trim();
+  if (!text) return;
+  inp.value=''; addMsg('user',text);
+  D.questionLog.push({text,ts:Date.now(),user:CU?.name||'Unknown'});
+  const tk={id:`T-${String(D.tickets.length+1).padStart(3,'0')}`,question:text,user:CU?.name||'Unknown',status:'open',ts:Date.now()};
+  D.tickets.push(tk); save(); updateBadges();
+  const typing=addMsg('bot','Thinking…'); typing.classList.add('typing');
+  // Smart KB filtering — only send top 5 most relevant entries to keep prompt small & fast
+  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+  const scored = D.faqs.map(f => {
+    const hay = (f.q + ' ' + f.a + ' ' + f.tag).toLowerCase();
+    const score = words.reduce((s, w) => s + (hay.includes(w) ? 1 : 0), 0);
+    return { ...f, score };
+  }).sort((a, b) => b.score - a.score);
+  // Always include top 5 relevant + always include top 3 by default if no match
+  const topFaqs = scored.slice(0, 5);
+  const ctx = topFaqs.map((f, i) => `[${i+1}] Q: ${f.q}\nA: ${f.a}`).join('\n\n');
+  try {
+    const sysPrompt = `You are Ask Akash AI, Shadowfax FM ops assistant. Answer using this KB. Understand intent not just keywords. If in KB start with "📚 From Knowledge Base:". If not start with "💡 General Guidance:". Be brief and direct. Key contact: Sudipta (allocation engine/order movements). Never say you don't know about pickup models, barcodes, cutoffs, courier service or serviceability.\n\nKB:\n${ctx}`;
+    const res = await fetch('https://text.pollinations.ai/' + encodeURIComponent(sysPrompt + '\n\nQuestion: ' + text), {
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const reply = await res.text();
+    D.faqs.forEach(f=>{if(reply.toLowerCase().includes(f.q.toLowerCase().slice(0,20)))f.hits=(f.hits||0)+1;});
+    save(); typing.remove(); addMsg('bot',reply.replace(/\n/g,'<br>'));
+    // Add "I don't know / Raise ticket" button after every bot reply
+    const btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:4px;';
+    btnWrap.innerHTML = `<button onclick="raiseTicketToAkash('${tk.id.replace(/'/g,"\\'")}','${text.replace(/'/g,"\\'").replace(/\n/g,' ').slice(0,120)}')" style="background:transparent;border:1.5px solid var(--bd2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn);font-weight:500;transition:all .15s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.borderColor='var(--org)';this.style.color='var(--org)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--tx2)'">🙋 I don't know — Raise ticket to Akash</button>`;
+    document.getElementById('msgs').appendChild(btnWrap);
+    document.getElementById('msgs').scrollTop = 99999;
+  } catch(e) {
+    typing.remove();
+    addMsg('bot', '⚠️ Could not get a response. Please check your connection and try again.');
+  }
+  const m=document.getElementById('msgs');
+  const nd=document.createElement('div');
+  nd.className='tn'; nd.innerHTML=`🎫 Ticket <strong>${tk.id}</strong> logged`;
+  m.appendChild(nd); m.scrollTop=m.scrollHeight;
+  if (CU?.role==='admin') refreshDash();
+}
+
+function raiseTicketToAkash(ticketId, question) {
+  const tk = D.tickets.find(x => x.id === ticketId);
+  if (tk) { tk.escalated = true; save(); }
+  // Mark visually
+  event.target.closest('button').outerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:6px 14px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(0,168,107,.2)">✅ Ticket raised to Akash</span>';
+  // Show confirmation message in chat
+  const m = document.getElementById('msgs');
+  const nd = document.createElement('div');
+  nd.className = 'tn';
+  nd.style.cssText = 'background:var(--grn-bg);border-color:rgba(0,168,107,.2);color:#1A3C2A;';
+  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal — he'll follow up shortly.`;
+  m.appendChild(nd);
+  m.scrollTop = 99999;
+  updateBadges();
+}
+
+/* TICKETS */
+function renderTK() {
+  const b=document.getElementById('tk-b');
+  if (!D.tickets.length){b.innerHTML='<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets raised yet</div>';return;}
+  b.innerHTML=[...D.tickets].reverse().map(t=>`
+    <div class="tbl-r">
+      <div style="font-family:var(--fm);font-size:12px;color:var(--tx3)">${t.id}</div>
+      <div>${t.question.slice(0,52)}${t.question.length>52?'…':''}</div>
+      <div style="font-size:12px;color:var(--tx2)">${t.user}</div>
+      <div><span class="bdg ${t.status==='open'?'bdg-o':'bdg-c'}">${t.status}</span>${t.escalated?'<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 7px;border-radius:4px;margin-left:5px">↑ Escalated</span>':''}</div>
+      <div>${t.status==='open'&&CU?.role==='admin'?`<button class="cl-btn" onclick="closeTK('${t.id}')">Close</button>`:''}</div>
+    </div>`).join('');
+}
+function closeTK(id){
+  const t=D.tickets.find(x=>x.id===id);
+  if(t){t.status='closed';save();renderTK();updateBadges();if(CU?.role==='admin')refreshDash();}
+}
+
+/* APPROVALS */
+function renderAP() {
+  const l=document.getElementById('ap-l');
+  const list=D.members.filter(m=>m.id!==1); // exclude admin
+  if (!list.length){l.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px">No members yet. Send an invite link above to add team members.</div>';return;}
+  l.innerHTML=list.map(m=>`
+    <div class="apc">
+      <div class="apav">${m.name[0].toUpperCase()}</div>
+      <div class="api">
+        <div class="apn">${m.name} <span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:6px;${m.status==='active'?'background:var(--grn-bg);color:var(--grn)':'background:var(--amb-bg);color:#92640a'}">${m.status}</span></div>
+        <div class="apm">${m.email} · ${m.dept}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        ${m.status==='active'?`<button class="bsm bsm-gh" onclick="removeM(${m.id})">Remove</button>`:`<button class="bsm bsm-gh" onclick="removeM(${m.id})">Delete</button>`}
+      </div>
+    </div>`).join('');
+}
+function approveM(id){const m=D.members.find(x=>x.id===id);if(m){m.status='active';save();renderAP();updateBadges();}}
+function rejectM(id){if(!confirm('Reject this request?'))return;D.members=D.members.filter(x=>x.id!==id);save();renderAP();updateBadges();}
+function removeM(id){if(!confirm('Remove this member?'))return;D.members=D.members.filter(x=>x.id!==id);save();renderAP();updateBadges();}
+
+/* DASHBOARD */
+function refreshDash() {
+  document.getElementById('d-tot').textContent=D.questionLog.length;
+  document.getElementById('d-kb').textContent=D.faqs.length;
+  document.getElementById('d-op').textContent=D.tickets.filter(t=>t.status==='open').length;
+  document.getElementById('d-mb').textContent=D.members.filter(m=>m.status==='active').length;
+  const l7=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    l7.push({day:d.toLocaleDateString('en',{weekday:'short'}),count:D.questionLog.filter(q=>new Date(q.ts).toDateString()===d.toDateString()).length});
+  }
+  const cx=document.getElementById('ch-q').getContext('2d');
+  if (CI) CI.destroy();
+  CI=new Chart(cx,{type:'bar',data:{labels:l7.map(x=>x.day),datasets:[{data:l7.map(x=>x.count),backgroundColor:'rgba(255,102,0,0.75)',borderRadius:6,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6B7385',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6B7385',font:{size:11},stepSize:1}}}}});
+  const sorted=[...D.faqs].sort((a,b)=>(b.hits||0)-(a.hits||0)).slice(0,5);
+  document.getElementById('top-q').innerHTML=sorted.map((f,i)=>`<div class="tqi"><div class="tqr">${i+1}</div><div class="tqt">${f.q.slice(0,46)}…</div><div class="tqh">${f.hits||0}</div></div>`).join('')||'<div style="color:var(--tx3);font-size:13px">No data yet</div>';
+}
+
+/* BADGES */
+function updateBadges() {
+  const op=D.tickets.filter(t=>t.status==='open').length;
+  const pend=D.members.filter(m=>m.status==='pending').length;
+  const tb=document.getElementById('n-tk'),ab=document.getElementById('n-ap');
+  tb.style.display=op?'flex':'none';tb.textContent=op;
+  ab.style.display=pend?'flex':'none';ab.textContent=pend;
+  renderTK();renderAP();
+}
+// Auto-login from session or check invite token
+const sessionUser = loadSession();
+if (sessionUser) {
+  CU = sessionUser;
+  enterPortal();
+} else {
+  checkInviteToken();
+}
+</script>
+</body>
+</html>
