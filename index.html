@@ -754,15 +754,15 @@ function markUnsatisfied(ticketId, fbId) {
 
 <script>
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 25; // Vercel Blob backend
+const KB_VERSION = 26; // Vercel Blob backend
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
-// ── Vercel Blob shared database ──
-const BLOB_API = 'https://blob.vercel-storage.com';
-const BLOB_FILENAME = 'salesguide-data.json';
+// ── JSONBin.io shared database ──
+// Free shared storage that works from any browser — no CORS issues
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
 
-// State
-let D = load(), CU = null, CI = null;
+// State — start with defData, will be overwritten by loadFromBlob()
+let D = defData(), CU = null, CI = null;
 
 function defData() {
   return {
@@ -800,109 +800,27 @@ function defData() {
 
 // ── VERCEL BLOB SHARED STORAGE ──
 // ── VERCEL BLOB SHARED STORAGE ──
-const BLOB_TOKEN = 'vercel_blob_rw_EBIAkbANN93NYcEL_1BzElXzeLXLdNjgR4hFqUdL8Ln61ST';
-const BLOB_URL = 'https://api.vercel.com/v2/blob';
-const DATA_FILENAME = 'sfx-salesguide-data.json';
-let blobStoreUrl = null; // will be discovered on first sync
-let syncTimer = null;
-let pendingSave = false;
+const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
+// Master API key for JSONBin (X-Master-Key)
+// Get free at jsonbin.io — needed to create bins
+// Once bin is created, only bin ID + access key needed
+let JSONBIN_BIN_ID = localStorage.getItem('sfx_bin_id') || null;
 
-async function discoverBlobUrl() {
-  if (blobStoreUrl) return blobStoreUrl;
-  try {
-    const r = await fetch('https://api.vercel.com/v2/blob?prefix=sfx-salesguide-data', {
-      headers: { 'Authorization': 'Bearer ' + BLOB_TOKEN }
-    });
-    const data = await r.json();
-    if (data.blobs && data.blobs.length > 0) {
-      blobStoreUrl = data.blobs[0].url;
-    }
-  } catch(e) {}
-  return blobStoreUrl;
-}
-
-/* old blob fns removed */
-
-function mergeData(local, remote) {
-  if (!remote) return local;
-  if (!local) return remote;
-  // Merge members — remote is source of truth for members
-  const memberMap = {};
-  (local.members || []).forEach(m => memberMap[m.email] = m);
-  (remote.members || []).forEach(m => { memberMap[m.email] = m; }); // remote wins
-  const merged = { ...remote };
-  merged.members = Object.values(memberMap);
-  // Merge tickets — combine both
-  const ticketIds = new Set((remote.tickets||[]).map(t => t.id));
-  const extraTickets = (local.tickets||[]).filter(t => !ticketIds.has(t.id));
-  merged.tickets = [...(remote.tickets||[]), ...extraTickets];
-  // Merge faqs — remote wins but keep local additions
-  const faqIds = new Set((remote.faqs||[]).map(f => f.id));
-  const extraFaqs = (local.faqs||[]).filter(f => !faqIds.has(f.id));
-  merged.faqs = [...(remote.faqs||[]), ...extraFaqs];
-  // Merge chat logs
-  merged.chatLog = [...new Map([...(remote.chatLog||[]), ...(local.chatLog||[])].map(l => [l.ts + l.user, l])).values()].sort((a,b) => a.ts - b.ts);
-  return merged;
-}
-
-/* ── VERCEL BLOB DATA LAYER ── */
 async function loadFromBlob() {
   try {
-    // List blobs to find our data file
-    const listRes = await fetch(BLOB_API + '?prefix=' + BLOB_FILENAME, {
-      headers: { 'authorization': 'Bearer ' + BLOB_TOKEN }
+    if (!JSONBIN_BIN_ID) {
+      // No bin yet — return default data, will be saved on first write
+      return null;
+    }
+    const res = await fetch(JSONBIN_API + '/' + JSONBIN_BIN_ID + '/latest', {
+      headers: { 'X-Access-Key': '$2a$10$6u7LoHFDmXpQxFLoGdJU4e3QQrwcTGJGOEpE5gQJ4Vo6Xb5FDdxPW' }
     });
-    const listData = await listRes.json();
-    const blobs = listData.blobs || [];
-    const existing = blobs.find(b => b.pathname === BLOB_FILENAME);
-
-    if (!existing) {
-      // First time — create with default data
-      const fresh = defData();
-      await saveToBlob(fresh);
-      return fresh;
-    }
-
-    BLOB_URL = existing.url;
-    // Fetch actual data
-    const dataRes = await fetch(existing.url + '?t=' + Date.now()); // cache bust
-    const d = await dataRes.json();
-
-    // Sync KB version
-    let changed = false;
-    if (!d.kbVersion || d.kbVersion < KB_VERSION) {
-      const def = defData();
-      const ids = new Set((d.faqs||[]).map(f => f.id));
-      def.faqs.forEach(f => { if (!ids.has(f.id)) { d.faqs = d.faqs || []; d.faqs.push(f); changed = true; } });
-      def.faqs.forEach(df => {
-        const ex = (d.faqs||[]).find(f => f.id === df.id);
-        if (ex) { ex.a = df.a; ex.q = df.q; ex.tag = df.tag; }
-      });
-      d.kbVersion = KB_VERSION; changed = true;
-    }
-
-    // Sync categories
-    if (!d.cats || !d.cats.length) { d.cats = defData().cats; changed = true; }
-    else { defData().cats.forEach(c => { if (!d.cats.includes(c)) { d.cats.push(c); changed = true; } }); }
-
-    // Ensure admin exists
-    d.members = d.members || [];
-    const ai = d.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
-    if (ai === -1) { d.members.unshift(defData().members[0]); changed = true; }
-    else {
-      if (d.members[ai].role !== 'admin') { d.members[ai].role = 'admin'; changed = true; }
-      if (d.members[ai].status !== 'active') { d.members[ai].status = 'active'; changed = true; }
-      if (!d.members[ai].pass) { d.members[ai].pass = 'admin@123'; changed = true; }
-    }
-
-    if (changed) await saveToBlob(d);
-    return d;
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.record || null;
   } catch(e) {
-    console.error('Blob load error:', e);
-    // Fallback to localStorage if blob fails
-    const raw = localStorage.getItem('sfx_fallback');
-    if (raw) return JSON.parse(raw);
-    return defData();
+    console.log('JSONBin load error:', e.message);
+    return null;
   }
 }
 
@@ -910,42 +828,44 @@ async function saveToBlob(data) {
   try {
     data.kbVersion = KB_VERSION;
     data.updatedAt = Date.now();
-    const json = JSON.stringify(data);
 
-    // Use Vercel Blob put API
-    const res = await fetch(BLOB_API + '/' + BLOB_FILENAME, {
+    if (!JSONBIN_BIN_ID) {
+      // Create a new bin
+      const res = await fetch(JSONBIN_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': '$2a$10$6u7LoHFDmXpQxFLoGdJU4e3QQrwcTGJGOEpE5gQJ4Vo6Xb5FDdxPW',
+          'X-Bin-Name': 'shadowfax-salesguide',
+          'X-Bin-Private': 'false'
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        const result = await res.json();
+        JSONBIN_BIN_ID = result.metadata.id;
+        localStorage.setItem('sfx_bin_id', JSONBIN_BIN_ID);
+        console.log('Created JSONBin:', JSONBIN_BIN_ID);
+        return true;
+      }
+      return false;
+    }
+
+    // Update existing bin
+    const res = await fetch(JSONBIN_API + '/' + JSONBIN_BIN_ID, {
       method: 'PUT',
       headers: {
-        'authorization': 'Bearer ' + BLOB_TOKEN,
-        'content-type': 'application/json',
-        'x-content-type': 'application/json',
-        'cache-control': 'no-store'
+        'Content-Type': 'application/json',
+        'X-Access-Key': '$2a$10$6u7LoHFDmXpQxFLoGdJU4e3QQrwcTGJGOEpE5gQJ4Vo6Xb5FDdxPW'
       },
-      body: json
+      body: JSON.stringify(data)
     });
-
-    if (res.ok) {
-      const result = await res.json();
-      BLOB_URL = result.url;
-      // Also save to localStorage as fallback
-      localStorage.setItem('sfx_fallback', json);
-    } else {
-      console.error('Blob save failed:', res.status, await res.text());
-      // Fallback to localStorage
-      localStorage.setItem('sfx_fallback', json);
-    }
+    return res.ok;
   } catch(e) {
-    console.error('Blob save error:', e);
-    localStorage.setItem('sfx_fallback', JSON.stringify(data));
+    console.log('JSONBin save error:', e.message);
+    return false;
   }
 }
-
-// Sync wrapper - save D to blob
-async function save() {
-  saveToBlob(D); // fire and forget — non-blocking
-}
-
-// Load wrapper for backward compat
 function load() { return defData(); } // not used directly anymore
 
 
