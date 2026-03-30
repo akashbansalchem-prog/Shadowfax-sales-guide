@@ -105,6 +105,61 @@ function markUnsatisfied(ticketId, fbId) {
   if (m) { const nd=document.createElement('div'); nd.className='tn'; nd.innerHTML='Ticket <strong>'+ticketId+'</strong> escalated to Akash.'; m.appendChild(nd); m.scrollTop=99999; }
 }
 
+
+function forceSyncNow() {
+  showToast('Syncing...');
+  loadFromBlob().then(remote => {
+    if (remote) {
+      const merged = mergeRemote(D, remote);
+      D = merged;
+      try { localStorage.setItem(STORE, JSON.stringify(D)); } catch(e) {}
+      updateBadges(); renderAP(); renderTK();
+      const el = document.getElementById('db-status-text');
+      if (el) el.textContent = '✅ Synced · ' + D.members.filter(m=>m.email.toLowerCase()!==ADMIN_EMAIL.toLowerCase()).length + ' members · ' + D.members.filter(m=>m.status==='pending').length + ' pending';
+      const bid = document.getElementById('db-bin-id');
+      if (bid) bid.textContent = 'Bin: ' + (JSONBIN_BIN_ID||'not created yet');
+      showToast('Synced! ' + D.members.filter(m=>m.status==='pending').length + ' pending approvals');
+    } else {
+      const el = document.getElementById('db-status-text');
+      if (el) el.textContent = '⚠️ Could not reach shared database';
+      showToast('Sync failed — check your connection');
+    }
+  }).catch(() => {
+    const el = document.getElementById('db-status-text');
+    if (el) el.textContent = '⚠️ Database error';
+  });
+}
+
+function mergeRemote(local, remote) {
+  if (!remote) return local;
+  if (!local) return remote;
+  const merged = { ...remote };
+  // Merge members — keep all from both
+  const memberMap = {};
+  (local.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m);
+  (remote.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m); // remote wins for existing
+  merged.members = Object.values(memberMap);
+  // Ensure admin
+  const ai = merged.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+  if (ai === -1) merged.members.unshift({id:1,name:'Akash Bansal',email:ADMIN_EMAIL,pass:'admin@123',dept:'Ops',role:'admin',status:'active'});
+  else { merged.members[ai].role='admin'; merged.members[ai].status='active'; }
+  // Merge tickets
+  const tkIds = new Set((remote.tickets||[]).map(t=>t.id));
+  (local.tickets||[]).forEach(t => { if(!tkIds.has(t.id)) merged.tickets.push(t); });
+  // Merge KB
+  const faqIds = new Set((remote.faqs||[]).map(f=>f.id));
+  (local.faqs||[]).forEach(f => { if(!faqIds.has(f.id)) merged.faqs.push(f); });
+  // KB version sync
+  if (!merged.kbVersion || merged.kbVersion < KB_VERSION) {
+    const def = defData();
+    const ids = new Set(merged.faqs.map(f=>f.id));
+    def.faqs.forEach(f => { if(!ids.has(f.id)) merged.faqs.push(f); });
+    merged.kbVersion = KB_VERSION;
+  }
+  if (!merged.cats||!merged.cats.length) merged.cats = defData().cats;
+  return merged;
+}
+
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -532,6 +587,11 @@ function markUnsatisfied(ticketId, fbId) {
   <div class="pg" id="pg-approvals">
     <div class="pi">
       <div class="ph"><h2>👥 Manage Users</h2><p>Review signup requests, approve access, manage roles and passwords</p></div>
+      <div id="db-status-banner" style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="db-status-text">🔄 Checking shared database...</span>
+        <span id="db-bin-id" style="font-family:var(--fm);font-size:11px;color:var(--tx3)"></span>
+        <button onclick="forceSyncNow()" style="margin-left:auto;padding:5px 12px;background:var(--org);color:white;border:none;border-radius:var(--rx);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn)">🔄 Sync Now</button>
+      </div>
 
       <!-- STATS ROW -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
@@ -798,7 +858,10 @@ const KB_VERSION = 27;
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 const JSONBIN_KEY = '$2a$10$mSzeWEdTZkxzKqb/JigIjes9rKWSTj3jhBJZ8RuI0Be0tOhM6zgYq';
-let JSONBIN_BIN_ID = localStorage.getItem('sfx_bin_id') || null;
+// Bin ID is shared across all devices — set once after first run
+// This gets populated on first load and stored in localStorage for speed
+const JSONBIN_BIN_ID = '69ca8a2c36566621a8613798'; // Permanent shared bin — DO NOT change
+localStorage.setItem('sfx_bin_id', JSONBIN_BIN_ID); // Ensure all browsers use same bin
 let D = {}, CU = null, CI = null;
 
 function defData() {
@@ -863,7 +926,6 @@ function loadSession() {
 }
 async function loadFromBlob() {
   try {
-    if (!JSONBIN_BIN_ID) return null;
     const res = await fetch(JSONBIN_API + '/' + JSONBIN_BIN_ID + '/latest', {
       headers: { 'X-Master-Key': JSONBIN_KEY }
     });
@@ -1723,6 +1785,61 @@ function createDirectAccount() {
     '<button onclick="navigator.clipboard.writeText(\'' + email + '\\n' + pass + '\\n' + portalUrl + '\').then(()=>this.textContent=\'Copied!\')" style="flex:1;padding:9px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">Copy Credentials</button>' +
     '<a href="https://wa.me/?text=' + waMsg + '" target="_blank" style="flex:1;padding:9px;background:#25D366;color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center">Send on WhatsApp</a>' +
     '</div>';
+}
+
+
+function forceSyncNow() {
+  showToast('Syncing...');
+  loadFromBlob().then(remote => {
+    if (remote) {
+      const merged = mergeRemote(D, remote);
+      D = merged;
+      try { localStorage.setItem(STORE, JSON.stringify(D)); } catch(e) {}
+      updateBadges(); renderAP(); renderTK();
+      const el = document.getElementById('db-status-text');
+      if (el) el.textContent = '✅ Synced · ' + D.members.filter(m=>m.email.toLowerCase()!==ADMIN_EMAIL.toLowerCase()).length + ' members · ' + D.members.filter(m=>m.status==='pending').length + ' pending';
+      const bid = document.getElementById('db-bin-id');
+      if (bid) bid.textContent = 'Bin: ' + (JSONBIN_BIN_ID||'not created yet');
+      showToast('Synced! ' + D.members.filter(m=>m.status==='pending').length + ' pending approvals');
+    } else {
+      const el = document.getElementById('db-status-text');
+      if (el) el.textContent = '⚠️ Could not reach shared database';
+      showToast('Sync failed — check your connection');
+    }
+  }).catch(() => {
+    const el = document.getElementById('db-status-text');
+    if (el) el.textContent = '⚠️ Database error';
+  });
+}
+
+function mergeRemote(local, remote) {
+  if (!remote) return local;
+  if (!local) return remote;
+  const merged = { ...remote };
+  // Merge members — keep all from both
+  const memberMap = {};
+  (local.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m);
+  (remote.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m); // remote wins for existing
+  merged.members = Object.values(memberMap);
+  // Ensure admin
+  const ai = merged.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+  if (ai === -1) merged.members.unshift({id:1,name:'Akash Bansal',email:ADMIN_EMAIL,pass:'admin@123',dept:'Ops',role:'admin',status:'active'});
+  else { merged.members[ai].role='admin'; merged.members[ai].status='active'; }
+  // Merge tickets
+  const tkIds = new Set((remote.tickets||[]).map(t=>t.id));
+  (local.tickets||[]).forEach(t => { if(!tkIds.has(t.id)) merged.tickets.push(t); });
+  // Merge KB
+  const faqIds = new Set((remote.faqs||[]).map(f=>f.id));
+  (local.faqs||[]).forEach(f => { if(!faqIds.has(f.id)) merged.faqs.push(f); });
+  // KB version sync
+  if (!merged.kbVersion || merged.kbVersion < KB_VERSION) {
+    const def = defData();
+    const ids = new Set(merged.faqs.map(f=>f.id));
+    def.faqs.forEach(f => { if(!ids.has(f.id)) merged.faqs.push(f); });
+    merged.kbVersion = KB_VERSION;
+  }
+  if (!merged.cats||!merged.cats.length) merged.cats = defData().cats;
+  return merged;
 }
 
 </script>
