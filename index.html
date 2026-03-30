@@ -694,7 +694,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 14; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 15; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -871,7 +871,9 @@ function showLoginErr(msg) {
 
 /* INVITE SYSTEM */
 function generateInvite(email, dept) {
-  const token = btoa(email + '|' + Date.now() + '|' + Math.random().toString(36).slice(2));
+  // URL-safe base64 — replace chars that break in WhatsApp/messaging
+  const rawToken = btoa(email + '|' + Date.now() + '|' + Math.random().toString(36).slice(2));
+  const token = rawToken.replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
   D.invites = D.invites || {};
   D.invites[token] = { email: email.toLowerCase(), dept, ts: Date.now(), used: false };
   save();
@@ -882,38 +884,27 @@ function generateInvite(email, dept) {
 function checkInviteToken() {
   const params = new URLSearchParams(window.location.search);
 
-  // ── Handle ?setup= (direct account created by admin) ──
-  const setupToken = params.get('setup');
-  if (setupToken) {
-    try {
-      const data = JSON.parse(atob(decodeURIComponent(setupToken)));
-      if (data.type === 'direct' && data.email && data.pass) {
-        // Create account in this browser if not already there
-        if (!D.members.find(m => m.email.toLowerCase() === data.email.toLowerCase())) {
-          D.members.push({
-            id: Date.now(),
-            name: data.name || data.email.split('@')[0],
-            email: data.email.toLowerCase(),
-            pass: data.pass,
-            dept: data.role || 'User',
-            role: 'member',
-            status: 'active',
-            joinedAt: Date.now()
-          });
-          save();
-        }
-        window.history.replaceState({}, document.title, window.location.pathname);
-        // Auto-fill and show success
-        document.getElementById('l-email').value = data.email;
-        document.getElementById('l-pass').value = data.pass;
-        const le = document.getElementById('le');
-        le.style.display = 'block';
-        le.style.cssText = 'display:block;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;';
-        le.innerHTML = '✅ <strong>Account ready!</strong> Your credentials are pre-filled. Just click <strong>Sign In</strong>.';
-      }
-    } catch(e) {
-      console.log('Setup token error:', e);
+  // ── Handle ?e= ?p= ?r= (direct account setup — simple URL params, no btoa) ──
+  const setupEmail = params.get('e');
+  const setupPass = params.get('p');
+  const setupRole = params.get('r');
+  if (setupEmail && setupPass) {
+    const email = decodeURIComponent(setupEmail).toLowerCase();
+    const pass = decodeURIComponent(setupPass);
+    const role = setupRole ? decodeURIComponent(setupRole) : 'User';
+    // Create account in this browser if not already there
+    if (!D.members.find(m => m.email.toLowerCase() === email)) {
+      const namePart = email.split('@')[0].replace(/[._-]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+      D.members.push({ id: Date.now(), name: namePart, email, pass, dept: role, role: 'member', status: 'active', joinedAt: Date.now() });
+      save();
     }
+    window.history.replaceState({}, document.title, window.location.pathname);
+    // Pre-fill login and show friendly message
+    document.getElementById('l-email').value = email;
+    document.getElementById('l-pass').value = pass;
+    const le = document.getElementById('le');
+    le.style.cssText = 'display:block;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6';
+    le.innerHTML = '👋 <strong>Welcome to Shadowfax Sales Guide!</strong><br>Your account is ready. Email and password are pre-filled — just click <strong>Sign In</strong> below.';
     return;
   }
 
@@ -921,7 +912,9 @@ function checkInviteToken() {
   const token = params.get('invite');
   if (!token) return;
   D.invites = D.invites || {};
-  const inv = D.invites[token];
+  // Restore URL-safe base64 to standard base64 for lookup
+  const normToken = token.replace(/-/g,'+').replace(/_/g,'/');
+  const inv = D.invites[token] || D.invites[normToken];
   if (!inv) { showInviteError('Invalid or expired invite link. Ask Akash for a new one.'); return; }
   if (inv.used) { showInviteError('This invite link has already been used. Ask Akash for a new one.'); return; }
   if (Date.now() - inv.ts > 7 * 24 * 3600 * 1000) { showInviteError('This invite link has expired (7 days). Ask Akash for a new one.'); return; }
