@@ -257,68 +257,78 @@ function markUnsatisfied(ticketId, fbId) {
     <div class="al-brand">
       <div class="al-logo">
         <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-        <div class="al-name">Shadowfax <span>Portal</span></div>
+        <div class="al-name">Shadowfax <span>Sales Guide</span></div>
       </div>
-      <div class="al-tagline">Shadowfax<br>Sales Guide<em>Your go-to guide for Shadowfax sales ops</em></div>
+      <div class="al-tagline">FM Operations<br>Knowledge Hub<em>Ask Akash AI — powered by your team's knowledge</em></div>
     </div>
     <div class="al-stats">
       <div class="al-stat"><div class="al-stat-v">AI-Powered</div><div class="al-stat-l">Instant answers for your team</div></div>
-      <div class="al-stat"><div class="al-stat-v">Invite-Only</div><div class="al-stat-l">Access via admin invite link</div></div>
+      <div class="al-stat"><div class="al-stat-v">Invite-Only</div><div class="al-stat-l">Access via admin invite</div></div>
     </div>
   </div>
   <div class="ar">
     <div class="ac">
-      <div class="ac-title">Sign In</div>
-      <div class="ac-sub">Shadowfax Sales Guide — invite-only access</div>
-      <div class="err" id="le" style="display:none"></div>
+      <div class="ac-title">Welcome Back</div>
+      <div class="ac-sub">Sign in with your email and password</div>
+      <div id="le" class="err" style="display:none"></div>
       <div class="fg">
         <div class="fl">Work Email</div>
-        <input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" onkeydown="if(event.key==='Enter')doLogin()" oninput="document.getElementById('le').style.display='none'"/>
+        <input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" autocomplete="email" oninput="clearLoginErr()"/>
       </div>
       <div class="fg">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div class="fl" style="margin-bottom:0">Password</div>
-          <a onclick="openRecovery()" style="font-size:11px;color:var(--org);cursor:pointer;font-weight:500">Forgot password?</a>
+          <a onclick="openRecovery()" style="font-size:11px;color:var(--org);cursor:pointer;font-weight:500;text-decoration:none">Forgot password?</a>
         </div>
         <div style="position:relative">
-          <input class="fi" type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" oninput="document.getElementById('le').style.display='none'" style="padding-right:42px"/>
-          <button onclick="togglePw('l-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px">👁</button>
+          <input class="fi" type="password" id="l-pass" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" oninput="clearLoginErr()" style="padding-right:46px"/>
+          <button type="button" onclick="togglePw('l-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:4px">👁</button>
         </div>
       </div>
-      <button class="bp" onclick="doLogin()" id="login-btn">Sign In</button>
-      <button onclick="debugLogin()" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1.5px dashed var(--bd2);border-radius:var(--rs);font-size:12px;color:var(--tx3);cursor:pointer;font-family:var(--fn)">🔍 Debug — Show what's stored</button>
-      <div id="debug-out" style="display:none;margin-top:10px;padding:12px;background:#1a1a1a;border-radius:var(--rs);font-size:11px;color:#c6e040;font-family:var(--fm);white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto"></div>
-      <div style="margin-top:12px;padding:12px 14px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--tx2);line-height:1.6">
-        <strong style="color:var(--tx)">First time?</strong> You need an invite link from Akash Bansal to create your account.
+      <button class="bp" onclick="doLogin()">Sign In →</button>
+      <div style="margin-top:16px;padding:12px 14px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--tx2);line-height:1.7;text-align:center">
+        New to the portal? <strong style="color:var(--tx)">Ask Akash Bansal</strong> for access.<br>
+        <span style="font-size:11px;color:var(--tx3)">You'll receive a link to set up your account.</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ACCEPT INVITE -->
+<!-- ACCEPT INVITE / SETUP -->
 <div id="sc-invite" class="aw" style="display:none">
   <div class="al">
     <div class="al-brand">
       <div class="al-logo">
         <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-        <div class="al-name">Shadowfax <span>Portal</span></div>
+        <div class="al-name">Shadowfax <span>Sales Guide</span></div>
       </div>
-      <div class="al-tagline">You're Invited!<em>Set up your account to get started</em></div>
+      <div class="al-tagline">You're Invited!<em>Complete setup to access the portal</em></div>
     </div>
     <div class="al-stats">
-      <div class="al-stat"><div class="al-stat-v">Secure</div><div class="al-stat-l">Invite tied to your email only</div></div>
+      <div class="al-stat"><div class="al-stat-v">Step 1</div><div class="al-stat-l">Set your name & password</div></div>
+      <div class="al-stat"><div class="al-stat-v">Step 2</div><div class="al-stat-l">Sign in & start using the portal</div></div>
     </div>
   </div>
   <div class="ar">
     <div class="ac">
-      <div class="ac-title">Set Up Account</div>
-      <div class="ac-sub" id="inv-sub">You've been invited to join the Shadowfax Sales Guide</div>
-      <div class="err" id="inv-err"></div>
-      <div class="fg"><div class="fl">Full Name</div><input class="fi" type="text" id="inv-name" placeholder="Your full name"/></div>
-      <div class="fg"><div class="fl">Email</div><input class="fi" type="email" id="inv-email" placeholder="you@shadowfax.in" readonly style="background:var(--s2);color:var(--tx2)"/></div>
-      <div class="fg"><div class="fl">Set Password</div><input class="fi" type="password" id="inv-pass" placeholder="Choose a password (min 6 chars)"/></div>
-
-      <button class="bp" onclick="acceptInvite()">Create Account & Sign In</button>
+      <div class="ac-title">Set Up Your Account</div>
+      <div class="ac-sub" id="inv-sub">Complete your profile to get started</div>
+      <div class="err" id="inv-err" style="display:none"></div>
+      <div class="fg"><div class="fl">Your Full Name</div><input class="fi" type="text" id="inv-name" placeholder="e.g. Rahul Sharma" autocomplete="name"/></div>
+      <div class="fg"><div class="fl">Email (pre-filled)</div><input class="fi" type="email" id="inv-email" readonly style="background:var(--s2);color:var(--tx2)"/></div>
+      <div class="fg">
+        <div class="fl">Set Your Password</div>
+        <div style="position:relative">
+          <input class="fi" type="password" id="inv-pass" placeholder="Choose a password (min 6 chars)" style="padding-right:46px"/>
+          <button type="button" onclick="togglePw('inv-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:4px">👁</button>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fl">Role</div>
+        <select class="fsl" id="inv-role"><option value="User">User — Chat access only</option><option value="Q Trainer">Q Trainer — Can upload training materials</option></select>
+      </div>
+      <button class="bp" onclick="acceptInvite()">Create Account & Sign In →</button>
+      <div style="margin-top:12px;font-size:12px;color:var(--tx3);text-align:center">Already have an account? <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:500">Sign in here</a></div>
     </div>
   </div>
 </div>
@@ -684,7 +694,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 13; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 14; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -785,21 +795,33 @@ function showSc(id) {
 }
 
 /* PASSWORD LOGIN */
+function clearLoginErr() {
+  const e = document.getElementById('le');
+  if (e) { e.style.display='none'; e.style.background=''; e.style.color=''; e.style.borderColor=''; }
+}
+
 function doLogin() {
   const email = document.getElementById('l-email').value.trim().toLowerCase();
   const pass = document.getElementById('l-pass').value;
-  const err = document.getElementById('le');
-  err.style.display = 'none';
+  clearLoginErr();
   if (!email) { showLoginErr('Please enter your email address.'); return; }
   if (!pass) { showLoginErr('Please enter your password.'); return; }
-  // Check email exists
   const byEmail = D.members.find(x => x.email.toLowerCase() === email);
-  if (!byEmail) { showLoginErr('No account found with this email. Check spelling or request an invite.'); return; }
-  // Check status
-  if (byEmail.status === 'pending') { showLoginErr('Your account is pending approval. Contact Akash Bansal.'); return; }
-  if (byEmail.status !== 'active') { showLoginErr('Your account is not active. Contact Akash Bansal.'); return; }
-  // Check password
-  if (byEmail.pass !== pass) { showLoginErr('Incorrect password. Try again or use Account Recovery below.'); return; }
+  if (!byEmail) {
+    showLoginErr('❌ No account found for this email. Ask Akash Bansal for an invite link, or use the setup link shared with you.');
+    return;
+  }
+  if (byEmail.status === 'pending') { showLoginErr('⏳ Your account is pending. Contact Akash Bansal.'); return; }
+  if (byEmail.status !== 'active') { showLoginErr('🚫 Account not active. Contact Akash Bansal.'); return; }
+  if (byEmail.pass !== pass) {
+    showLoginErr('❌ Wrong password. Try again or click "Forgot password?" below.');
+    // Shake password field
+    const pf = document.getElementById('l-pass');
+    pf.style.borderColor = 'var(--red)';
+    pf.style.animation = 'shake .3s ease';
+    setTimeout(()=>{ pf.style.animation=''; pf.style.borderColor=''; }, 600);
+    return;
+  }
   CU = byEmail;
   enterPortal();
 }
@@ -860,47 +882,64 @@ function generateInvite(email, dept) {
 function checkInviteToken() {
   const params = new URLSearchParams(window.location.search);
 
-  // Handle direct account setup link (?setup=)
+  // ── Handle ?setup= (direct account created by admin) ──
   const setupToken = params.get('setup');
   if (setupToken) {
     try {
       const data = JSON.parse(atob(decodeURIComponent(setupToken)));
       if (data.type === 'direct' && data.email && data.pass) {
-        // Auto-create account in this browser if not exists
-        const existing = D.members.find(m => m.email.toLowerCase() === data.email.toLowerCase());
-        if (!existing) {
-          D.members.push({ id: Date.now(), name: data.name || data.email.split('@')[0], email: data.email.toLowerCase(), pass: data.pass, dept: data.role || 'User', role: 'member', status: 'active', joinedAt: Date.now() });
+        // Create account in this browser if not already there
+        if (!D.members.find(m => m.email.toLowerCase() === data.email.toLowerCase())) {
+          D.members.push({
+            id: Date.now(),
+            name: data.name || data.email.split('@')[0],
+            email: data.email.toLowerCase(),
+            pass: data.pass,
+            dept: data.role || 'User',
+            role: 'member',
+            status: 'active',
+            joinedAt: Date.now()
+          });
           save();
         }
-        // Pre-fill login form
         window.history.replaceState({}, document.title, window.location.pathname);
+        // Auto-fill and show success
         document.getElementById('l-email').value = data.email;
         document.getElementById('l-pass').value = data.pass;
-        // Show success message
         const le = document.getElementById('le');
         le.style.display = 'block';
-        le.style.background = 'var(--grn-bg)';
-        le.style.color = 'var(--grn)';
-        le.style.borderColor = 'rgba(26,60,42,.2)';
-        le.textContent = '✅ Account ready! Your credentials have been pre-filled. Click Sign In.';
+        le.style.cssText = 'display:block;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;';
+        le.innerHTML = '✅ <strong>Account ready!</strong> Your credentials are pre-filled. Just click <strong>Sign In</strong>.';
       }
-    } catch(e) { console.log('Setup token error:', e); }
+    } catch(e) {
+      console.log('Setup token error:', e);
+    }
     return;
   }
 
-  // Handle invite link (?invite=)
+  // ── Handle ?invite= (invite link) ──
   const token = params.get('invite');
   if (!token) return;
   D.invites = D.invites || {};
   const inv = D.invites[token];
-  if (!inv) { alert('Invalid or expired invite link.'); return; }
-  if (inv.used) { alert('This invite link has already been used.'); return; }
-  if (Date.now() - inv.ts > 7 * 24 * 3600 * 1000) { alert('This invite link has expired (7 days).'); return; }
-  document.getElementById('sc-login').style.display = 'none';
+  if (!inv) { showInviteError('Invalid or expired invite link. Ask Akash for a new one.'); return; }
+  if (inv.used) { showInviteError('This invite link has already been used. Ask Akash for a new one.'); return; }
+  if (Date.now() - inv.ts > 7 * 24 * 3600 * 1000) { showInviteError('This invite link has expired (7 days). Ask Akash for a new one.'); return; }
+  // Show invite setup screen
+  ['sc-login'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
   document.getElementById('sc-invite').style.display = 'flex';
   document.getElementById('inv-email').value = inv.email;
-  document.getElementById('inv-sub').textContent = "You've been invited to join the Shadowfax Sales Guide. Set up your account below.";
+  document.getElementById('inv-sub').textContent = 'Welcome! You have been invited to the Shadowfax Sales Guide. Set your name and password below.';
   document.getElementById('inv-email').dataset.token = token;
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function showInviteError(msg) {
+  document.getElementById('sc-invite').style.display = 'none';
+  document.getElementById('sc-login').style.display = 'flex';
+  const le = document.getElementById('le');
+  le.style.cssText = 'display:block;background:var(--red-bg);border:1px solid rgba(211,47,47,.25);color:var(--red);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;';
+  le.textContent = msg;
 }
 
 function acceptInvite() {
@@ -911,16 +950,26 @@ function acceptInvite() {
   const token = document.getElementById('inv-email').dataset.token;
   const err = document.getElementById('inv-err');
   err.style.display = 'none';
-  if (!name) { err.style.display='block'; err.textContent='Please enter your full name.'; return; }
-  if (pass.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters.'; return; }
-  if (D.members.find(x => x.email.toLowerCase()===email)) {
-    err.style.display='block'; err.textContent='An account with this email already exists. Please sign in.'; return;
+  if (!name || name.length < 2) { err.style.display='block'; err.textContent='Please enter your full name (at least 2 characters).'; return; }
+  if (!pass || pass.length < 6) { err.style.display='block'; err.textContent='Please choose a password of at least 6 characters.'; return; }
+  // If account already exists (e.g. admin pre-created), just update password and login
+  const existing = D.members.find(x => x.email.toLowerCase()===email);
+  if (existing) {
+    existing.name = name;
+    existing.pass = pass;
+    existing.dept = dept;
+    existing.status = 'active';
+    if (token && D.invites?.[token]) D.invites[token].used = true;
+    save();
+    CU = existing;
+    window.history.replaceState({}, document.title, window.location.pathname);
+    enterPortal();
+    return;
   }
-  D.members.push({ id: Date.now(), name, email, pass, dept, role:'member', status:'active' });
-  D.invites[token].used = true;
+  D.members.push({ id: Date.now(), name, email, pass, dept, role:'member', status:'active', joinedAt: Date.now() });
+  if (token && D.invites?.[token]) D.invites[token].used = true;
   save();
   CU = D.members.find(x => x.email.toLowerCase()===email);
-  // Clean URL
   window.history.replaceState({}, document.title, window.location.pathname);
   enterPortal();
 }
@@ -933,12 +982,16 @@ function createAndCopyInvite() {
   if (D.members.find(x => x.email.toLowerCase()===email)) { alert('This email already has an account.'); return; }
   const link = generateInvite(email, dept);
   navigator.clipboard.writeText(link).catch(()=>{});
-  const pass = document.getElementById('inv-temppass')?.value.trim();
   res.style.display = 'block';
-  res.innerHTML = '✅ Invite link generated for <strong>' + email + '</strong> (' + dept + ')<br>' +
-    '<span style="font-family:var(--fm);font-size:11px;word-break:break-all;opacity:.8">' + link + '</span><br>' +
-    (pass ? '🔑 They will set their own password via the invite link.<br>' : '') +
-    '<span style="font-size:11px;opacity:.7">📋 Link copied to clipboard! Valid for 7 days.</span>';
+  res.innerHTML =
+    '<strong>✅ Invite link ready!</strong><br><br>' +
+    '<div style="background:var(--s2);border-radius:var(--rx);padding:10px 12px;margin-bottom:8px">' +
+    '<div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:4px">Share this link with ' + email + ':</div>' +
+    '<div style="font-family:var(--fm);font-size:10px;word-break:break-all;color:var(--tx2);margin-bottom:6px">' + link + '</div>' +
+    '<button onclick="navigator.clipboard.writeText(\'' + link.replace(/'/g,"\\'") + '\').then(()=>this.textContent=\'✅ Copied!\')" style="padding:5px 12px;background:var(--org);color:white;border:none;border-radius:var(--rx);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn)">📋 Copy Link</button>' +
+    '</div>' +
+    '<div style="font-size:11px;color:var(--tx3)">👤 Role: <strong>' + dept + '</strong> · ⏱ Valid for 7 days · 🔂 Single use only<br>' +
+    'User will set their own name and password when they open the link.</div>';
   document.getElementById('inv-to').value = '';
 }
 
