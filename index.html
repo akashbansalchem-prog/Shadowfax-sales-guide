@@ -694,7 +694,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 16; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 17; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -893,61 +893,63 @@ function showLoginErr(msg) {
 
 /* INVITE SYSTEM */
 function generateInvite(email, dept) {
-  // URL-safe base64 — replace chars that break in WhatsApp/messaging
-  const rawToken = btoa(email + '|' + Date.now() + '|' + Math.random().toString(36).slice(2));
-  const token = rawToken.replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  D.invites = D.invites || {};
-  D.invites[token] = { email: email.toLowerCase(), dept, ts: Date.now(), used: false };
-  save();
-  const url = window.location.href.split('?')[0] + '?invite=' + token;
+  // Generate a simple random temp password
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const tempPass = Array.from({length:8}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  
+  // Add member to local store
+  if (!D.members.find(m => m.email.toLowerCase() === email.toLowerCase())) {
+    const namePart = email.split('@')[0].replace(/[._-]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    D.members.push({ id: Date.now(), name: namePart, email: email.toLowerCase(), pass: tempPass, dept, role: 'member', status: 'active', joinedAt: Date.now() });
+    save();
+  }
+  
+  // Build simple URL with plain params — no btoa, no tokens
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const url = base + '?e=' + encodeURIComponent(email) + '&p=' + encodeURIComponent(tempPass) + '&r=' + encodeURIComponent(dept);
   return url;
 }
 
+
 function checkInviteToken() {
   const params = new URLSearchParams(window.location.search);
-
-  // ── Handle ?e= ?p= ?r= (direct account setup — simple URL params, no btoa) ──
   const setupEmail = params.get('e');
-  const setupPass = params.get('p');
-  const setupRole = params.get('r');
-  if (setupEmail && setupPass) {
-    const email = decodeURIComponent(setupEmail).toLowerCase();
-    const pass = decodeURIComponent(setupPass);
-    const role = setupRole ? decodeURIComponent(setupRole) : 'User';
-    // Create account in this browser if not already there
-    if (!D.members.find(m => m.email.toLowerCase() === email)) {
-      const namePart = email.split('@')[0].replace(/[._-]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-      D.members.push({ id: Date.now(), name: namePart, email, pass, dept: role, role: 'member', status: 'active', joinedAt: Date.now() });
-      save();
-    }
-    // Pre-fill login and show friendly message FIRST, then clean URL
-    document.getElementById('l-email').value = email;
-    document.getElementById('l-pass').value = pass;
-    window.history.replaceState({}, document.title, window.location.pathname);
-    const le = document.getElementById('le');
-    le.style.cssText = 'display:block;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6';
-    le.innerHTML = '👋 <strong>Welcome to Shadowfax Sales Guide!</strong><br>Your account is ready. Email and password are pre-filled — just click <strong>Sign In</strong> below.';
-    return;
+  const setupPass  = params.get('p');
+  const setupRole  = params.get('r') || 'User';
+
+  if (!setupEmail || !setupPass) return; // No setup params — show normal login
+
+  const email = setupEmail.toLowerCase().trim();
+  const pass  = setupPass.trim();
+  const role  = setupRole.trim();
+
+  // Register account in this browser if not already there
+  if (!D.members.find(m => m.email.toLowerCase() === email)) {
+    const namePart = email.split('@')[0]
+      .replace(/[._-]/g,' ')
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    D.members.push({
+      id: Date.now(), name: namePart, email, pass,
+      dept: role, role: 'member', status: 'active', joinedAt: Date.now()
+    });
+    save();
   }
 
-  // ── Handle ?invite= (invite link) ──
-  const token = params.get('invite');
-  if (!token) return;
-  D.invites = D.invites || {};
-  // Restore URL-safe base64 to standard base64 for lookup
-  const normToken = token.replace(/-/g,'+').replace(/_/g,'/');
-  const inv = D.invites[token] || D.invites[normToken];
-  if (!inv) { showInviteError('Invalid or expired invite link. Ask Akash for a new one.'); return; }
-  if (inv.used) { showInviteError('This invite link has already been used. Ask Akash for a new one.'); return; }
-  if (Date.now() - inv.ts > 7 * 24 * 3600 * 1000) { showInviteError('This invite link has expired (7 days). Ask Akash for a new one.'); return; }
-  // Show invite setup screen
-  ['sc-login'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-  document.getElementById('sc-invite').style.display = 'flex';
-  document.getElementById('inv-email').value = inv.email;
-  document.getElementById('inv-sub').textContent = 'Welcome! You have been invited to the Shadowfax Sales Guide. Set your name and password below.';
-  document.getElementById('inv-email').dataset.token = token;
+  // Pre-fill login form
+  document.getElementById('l-email').value = email;
+  document.getElementById('l-pass').value  = pass;
+
+  // Show friendly welcome banner
+  const le = document.getElementById('le');
+  le.style.cssText = 'display:block;background:#EBF5EE;border:1px solid rgba(26,60,42,.25);color:#1A3C2A;padding:12px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;line-height:1.7';
+  le.innerHTML = '👋 <strong>Welcome to Shadowfax Sales Guide!</strong><br>Your account is ready. Click <strong>Sign In →</strong> below.';
+
+  // Clean URL without losing the page
   window.history.replaceState({}, document.title, window.location.pathname);
 }
+
 
 function showInviteError(msg) {
   document.getElementById('sc-invite').style.display = 'none';
@@ -992,361 +994,58 @@ function acceptInvite() {
 function createAndCopyInvite() {
   const email = document.getElementById('inv-to').value.trim().toLowerCase();
   const dept = document.getElementById('inv-role-admin')?.value || 'User';
+  const pass = document.getElementById('inv-temppass').value.trim() || genPasswordStr();
   const res = document.getElementById('inv-result');
   if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
-  if (D.members.find(x => x.email.toLowerCase()===email)) { alert('This email already has an account.'); return; }
-  const link = generateInvite(email, dept);
+
+  // Save account in admin's browser too
+  if (!D.members.find(x => x.email.toLowerCase() === email)) {
+    const namePart = email.split('@')[0].replace(/[._-]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    D.members.push({ id: Date.now(), name: namePart, email, pass, dept, role: 'member', status: 'active', joinedAt: Date.now() });
+    save(); renderAP(); updateBadges();
+  }
+
+  // Simple setup link — works on any device, any browser
+  const baseUrl = window.location.href.split('?')[0].split('#')[0];
+  const link = baseUrl + '?e=' + encodeURIComponent(email) + '&p=' + encodeURIComponent(pass) + '&r=' + encodeURIComponent(dept);
   navigator.clipboard.writeText(link).catch(()=>{});
+
+  const waMsg = 'Hi! Your *Shadowfax Sales Guide* account is ready 🎉\n\n' +
+    '👉 *Click this link to sign in:*\n' + link + '\n\n' +
+    'If the link doesn\'t work, login manually:\n' +
+    '🌐 ' + baseUrl + '\n📧 ' + email + '\n🔑 ' + pass + '\n\n' +
+    '_Please change your password after first login._';
+
+  // Attach copy button handler after render
+  setTimeout(() => {
+    const cb = document.getElementById('inv-copy-btn');
+    if (cb) cb.onclick = () => {
+      navigator.clipboard.writeText(link).then(() => {
+        cb.textContent = '✅ Copied!';
+        setTimeout(() => cb.textContent = '📋 Copy Link', 2000);
+      });
+    };
+  }, 50);
+  document.getElementById('inv-to').value = '';
+  if (document.getElementById('inv-temppass')) document.getElementById('inv-temppass').value = '';
+
   res.style.display = 'block';
   res.innerHTML =
-    '<strong>✅ Invite link ready!</strong><br><br>' +
-    '<div style="background:var(--s2);border-radius:var(--rx);padding:10px 12px;margin-bottom:8px">' +
-    '<div style="font-size:11px;font-weight:700;color:var(--tx);margin-bottom:4px">Share this link with ' + email + ':</div>' +
-    '<div style="font-family:var(--fm);font-size:10px;word-break:break-all;color:var(--tx2);margin-bottom:6px">' + link + '</div>' +
-    '<button onclick="navigator.clipboard.writeText(\'' + link.replace(/'/g,"\\'") + '\').then(()=>this.textContent=\'✅ Copied!\')" style="padding:5px 12px;background:var(--org);color:white;border:none;border-radius:var(--rx);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn)">📋 Copy Link</button>' +
+    '<div style="font-size:13px;font-weight:700;color:var(--grn);margin-bottom:10px">✅ Invite Link Ready!</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
+      '<div style="background:var(--s2);border-radius:var(--rs);padding:9px 11px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--tx3);margin-bottom:3px">Email</div><div style="font-size:12px;font-weight:600;word-break:break-all">' + email + '</div></div>' +
+      '<div style="background:var(--s2);border-radius:var(--rs);padding:9px 11px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--tx3);margin-bottom:3px">Password</div><div style="font-size:13px;font-weight:700;font-family:var(--fm);letter-spacing:1px">' + pass + '</div></div>' +
     '</div>' +
-    '<div style="font-size:11px;color:var(--tx3)">👤 Role: <strong>' + dept + '</strong> · ⏱ Valid for 7 days · 🔂 Single use only<br>' +
-    'User will set their own name and password when they open the link.</div>';
-  document.getElementById('inv-to').value = '';
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button id="copy-inv-btn" onclick="navigator.clipboard.writeText(document.getElementById(\'inv-link-val\').textContent).then(()=>{this.textContent=\'✅ Copied!\';setTimeout(()=>this.textContent=\'🔗 Copy Link\',2000)})" style="flex:1;min-width:120px;padding:9px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">🔗 Copy Link</button>' +
+      '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" target="_blank" style="flex:1;min-width:120px;padding:9px;background:#25D366;color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center">📱 WhatsApp</a>' +
+    '</div>' +
+    '<div style="margin-top:8px;font-size:11px;color:var(--tx3);line-height:1.6">📋 Link also copied to clipboard. User clicks link → account auto-activates → clicks Sign In. Works on any device.</div>';
 }
 
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key) { alert('Please enter a Groq API key'); return; }
-  D.config = D.config || {};
-  D.config.groqKey = key;
-  save();
-  document.getElementById('api-key-banner').style.display = 'none';
-  addMsg('bot', '✅ Groq API key saved! AI responses will be faster now.');
-}
-
-function checkApiKey() {
-  const banner = document.getElementById('api-key-banner');
-  // Show banner only if no groq key and admin
-  if (!D.config?.groqKey && CU?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-
-/* API HELPER */
-async function apiCall(prompt) {
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json','x-api-key': D.config?.apiKey || '','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:50,system:'Background email system. Reply only: "sent"',messages:[{role:'user',content:prompt}]})
-    });
-    return await r.json();
-  } catch(e){ return null; }
-}
-
-/* PORTAL */
-function doLogout() {
-  CU=null;
-  sessionStorage.removeItem(STORE_SESSION);
-  document.getElementById('portal').classList.remove('on');
-  document.getElementById('portal').style.display='none';
-  const le=document.getElementById('l-email'); if(le) le.value='';
-  const lp=document.getElementById('l-pass'); if(lp) lp.value='';
-  showSc('sc-login');
-}
-
-function enterPortal() {
-  saveSession(CU);
-  // Hide all auth screens safely
-  ['sc-login','sc-reg','sc-invite'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-  const p = document.getElementById('portal');
-  p.style.display = 'flex';
-  p.classList.add('on');
-  document.getElementById('u-av').textContent = CU.name[0].toUpperCase();
-  document.getElementById('u-lb').textContent = CU.name + ' · ' + CU.role;
-  // Only akash.bansal@shadowfax.in can be admin — lock down any tampering
-  if (CU.role === 'admin' && CU.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    CU.role = 'member';
-  }
-  const isAdmin = CU.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && CU.role === 'admin';
-  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-  updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey(); renderChatLogs(); renderTraining();
-  // Show training upload section for admin + Q Trainer
-  const uploadSec = document.getElementById('training-upload-section');
-  if (uploadSec) uploadSec.style.display = canTrainAccess() ? 'block' : 'none';
-  populateCatSelects();
-  const tkPh = document.getElementById('tk-ph');
-  if (tkPh) tkPh.textContent = isAdmin ? 'All team tickets — respond and save answers to KB' : 'Your raised tickets and admin responses';
-  if (isAdmin) refreshDash();
-  scheduleMailer();
-}
-
-function showPg(n) {
-  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('pg-'+n).classList.add('on');
-  document.getElementById('nav-'+n).classList.add('on');
-  if (n==='dashboard') refreshDash();
-  if (n==='chatlogs') renderChatLogs();
-  if (n==='training') renderTraining();
-}
-
-/* 8PM IST MAILER */
-let mScheduled=false;
-function scheduleMailer() {
-  if (mScheduled) return; mScheduled=true;
-  setInterval(async()=>{
-    const now=new Date();
-    const ist=new Date(now.getTime()+5.5*3600000);
-    if (ist.getUTCHours()===20&&ist.getUTCMinutes()===0) {
-      const open=D.tickets.filter(t=>t.status==='open');
-      if (!open.length) return;
-      const lines=open.map(t=>`• ${t.id}: "${t.question.slice(0,60)}…" — ${t.user}`).join('\n');
-      await apiCall(`Send day-end summary:\nTO: ${ADMIN_EMAIL}\nSUBJECT: [Sales Guide] Pending Tickets – ${new Date().toLocaleDateString('en-IN')}\nBODY: Hi Akash,\n\nDay-end summary: ${open.length} pending ticket(s) as of 8:00 PM IST:\n\n${lines}\n\nLog in to the Sales Guide to review and close.\n\nRegards,\nShadowfax Sales Guide (Automated)`);
-      showToast(`📧 Day-end: ${open.length} pending ticket(s) summary sent to ${ADMIN_EMAIL}`);
-    }
-  },60000);
-}
-
-function showToast(msg) {
-  const t=document.getElementById('toast');
-  document.getElementById('toast-msg').textContent=msg;
-  t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),5000);
-}
-
-/* KB */
-function renderKBS() {
-  const q=document.getElementById('kb-s').value.toLowerCase();
-  const l=document.getElementById('kb-l');
-  const f=D.faqs.filter(x=>!q||x.q.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q));
-  document.getElementById('kb-cl').textContent=`${D.faqs.length} entries`;
-  document.getElementById('kb-cc').textContent=`${D.faqs.length} KB entries`;
-  l.innerHTML=f.length?f.map(x=>`<div class="kbi" onclick="showKBItem(${x.id})"><div class="kbi-q">${x.q}</div><span class="kbi-tg">${x.tag}</span></div>`).join(''):'<div style="padding:12px;font-size:12px;color:var(--tx3)">No results</div>';
-}
-
-function renderKBP() {
-  const q=(document.getElementById('kb-ps')?.value||'').toLowerCase();
-  const cat=(document.getElementById('kb-cat-filter')?.value||'');
-  const g=document.getElementById('kb-pg');
-  const f=D.faqs.filter(x=>
-    (!q||x.q.toLowerCase().includes(q)||x.a.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q)) &&
-    (!cat||x.tag===cat)
-  );
-  g.innerHTML=f.map(x=>`<div class="kbc"><span class="kbc-tg">${x.tag}</span><div class="kbc-q">${x.q}</div><div class="kbc-a">${x.a.replace(/\n/g,'<br>')}</div>${CU?.role==='admin'?`<div class="kbc-ft"><button class="bsm bsm-gh" onclick="delKB(${x.id})" style="font-size:11px;padding:5px 10px">Delete</button></div>`:''}</div>`).join('')||'<div style="color:var(--tx3);font-size:13px;padding:8px">No entries found.</div>';
-}
-
-function showKBItem(id) {
-  const f=D.faqs.find(x=>x.id===id);
-  if (!f) return;
-  addMsg('bot',`<strong>${f.q}</strong><br><br>${f.a.replace(/\n/g,'<br>')}`);
-  showPg('chat');
-}
-
-function openKBModal(){
-  const sel = document.getElementById('m-tag');
-  if (sel) sel.innerHTML = (D.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join('');
-  document.getElementById('kb-modal').classList.add('on');
-}
-function closeKBModal(){document.getElementById('kb-modal').classList.remove('on');}
-function saveKB() {
-  const q=document.getElementById('m-q').value.trim();
-  const a=document.getElementById('m-a').value.trim();
-  const tag=document.getElementById('m-tag').value;
-  if (!q||!a){alert('Please fill in both question and answer.');return;}
-  D.faqs.push({id:Date.now(),tag,q,a,hits:0});
-  save(); document.getElementById('m-q').value=''; document.getElementById('m-a').value='';
-  closeKBModal(); renderKBS(); renderKBP();
-  if (CU?.role==='admin') refreshDash();
-}
-function delKB(id){
-  if (!confirm('Delete this entry?')) return;
-  D.faqs=D.faqs.filter(f=>f.id!==id);
-  save(); renderKBS(); renderKBP();
-}
-
-/* CHAT */
-function addMsg(role, html) {
-  const m=document.getElementById('msgs');
-  const d=document.createElement('div');
-  d.className='msg '+role;
-  const lbl=role==='bot'?'SF':(CU?.name?.[0]?.toUpperCase()||'U');
-  d.innerHTML=`<div class="mav ${role}">${lbl}</div><div class="bbl">${html}</div>`;
-  m.appendChild(d); m.scrollTop=m.scrollHeight; return d;
-}
-
-async function sendMsg() {
-  const inp=document.getElementById('ui');
-  const text=inp.value.trim();
-  if (!text) return;
-  inp.value=''; addMsg('user',text);
-  D.questionLog.push({text,ts:Date.now(),user:CU?.name||'Unknown'});
-  D.chatLog = D.chatLog || [];
-  D.chatLog.push({role:'user',text,user:CU?.name||'Unknown',ts:Date.now()});
-  save(); updateBadges();
-  const typing=addMsg('bot','Thinking…'); typing.classList.add('typing');
-  // Smart KB scoring — all entries scored, top 8 sent to AI
-  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-  const scored = D.faqs.map(f => {
-    const hay = (f.q + ' ' + f.a + ' ' + f.tag).toLowerCase();
-    let score = 0;
-    words.forEach(w => {
-      if (hay.includes(w)) score += 1;           // word match
-      if (f.q.toLowerCase().includes(w)) score += 2; // extra weight for question match
-      if (f.tag.toLowerCase().includes(w)) score += 1; // tag match
-    });
-    // Boost recently added entries (user-added ones)
-    if (f.id > 100000) score += 0.5;
-    return { ...f, score };
-  }).sort((a, b) => b.score - a.score);
-  // Send top 8 entries — enough context without overloading
-  const topFaqs = scored.slice(0, 8);
-  // Always include ALL entries if KB is small
-  const kbEntries = D.faqs.length <= 25 ? D.faqs : topFaqs;
-  const ctx = kbEntries.map((f, i) => `[${i+1}] TAG:${f.tag}\nQ: ${f.q}\nA: ${f.a}`).join('\n\n');
-  try {
-    const sysPrompt = `You are Ask Akash AI — the Shadowfax FM operations assistant.
-
-KNOWLEDGE BASE (your ONLY source of truth — always check ALL entries before answering):
-${ctx}
-
-STRICT RULES:
-1. Read EVERY KB entry above before answering.
-2. Match by MEANING and INTENT, not just exact words. E.g. "pickup from warehouse using marketplace model" = cross-model pickup = covered in KB.
-3. If answer found in KB → start with "📚 From Knowledge Base:" and give the full answer.
-4. If partially covered → use KB + add brief practical guidance.
-5. If genuinely not in KB → start with "💡 General Guidance:" and answer from FM logistics knowledge.
-6. NEVER say you don't know if the topic is pickup models, barcodes, cutoffs, courier service, serviceability, Delhi volume, or ops remarks.
-7. Be concise. Use bullet points for multi-step answers.
-8. Key contact: Sudipta (allocation engine config, order movements).`;
-    // Try Groq (fast, free, reliable) with fallback to Pollinations
-    let reply = '';
-    try {
-      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (D.config?.groqKey || '') },
-        body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 500, messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: text }] }),
-        signal: AbortSignal.timeout(15000)
-      });
-      if (groqRes.ok) {
-        const gd = await groqRes.json();
-        reply = gd.choices?.[0]?.message?.content || '';
-      }
-    } catch(ge) { reply = ''; }
-    // Fallback: Pollinations
-    if (!reply) {
-      const polRes = await fetch('https://text.pollinations.ai/' + encodeURIComponent(sysPrompt + '\n\nQuestion: ' + text), { signal: AbortSignal.timeout(20000) });
-      if (polRes.ok) reply = await polRes.text();
-    }
-    // Fallback: local KB search answer
-    if (!reply) {
-      const best = scored[0];
-      reply = best && best.score > 0
-        ? '📚 From Knowledge Base:\n\n' + best.a
-        : '💡 I could not connect to the AI service right now. Please try again in a moment, or raise a ticket for Akash to answer directly.';
-    }
-    D.faqs.forEach(f=>{if(reply.toLowerCase().includes(f.q.toLowerCase().slice(0,20)))f.hits=(f.hits||0)+1;});
-    D.chatLog = D.chatLog || [];
-    D.chatLog.push({role:'bot',text:reply,user:'Ask Akash AI',ts:Date.now()});
-    save(); typing.remove(); addMsg('bot', reply.replace(/\n/g,'<br>'));
-    // Feedback row
-    const fbId = 'fb_' + tk.id;
-    const fbWrap = document.createElement('div');
-    fbWrap.id = fbId;
-    fbWrap.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 6px 10px 44px;flex-wrap:wrap;';
-    fbWrap.innerHTML =
-      '<span style="font-size:12px;color:var(--tx3);font-family:var(--fn)">Was this helpful?</span>' +
-      '<button onclick="markSatisfied(\''+tk.id+'\',\''+fbId+'\')" style="background:var(--grn-bg);border:1.5px solid rgba(26,60,42,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--grn);cursor:pointer;font-family:var(--fn);font-weight:600;">👍 Yes, helpful</button>' +
-      '<button onclick="markUnsatisfied(\''+tk.id+'\',\''+fbId+'\')" style="background:var(--red-bg);border:1.5px solid rgba(211,47,47,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--fn);font-weight:600;">👎 No — Raise Ticket</button>';
-    document.getElementById('msgs').appendChild(fbWrap);
-    document.getElementById('msgs').scrollTop = 99999;
-  } catch(e) {
-    typing.remove();
-    addMsg('bot', '⚠️ Could not get a response. Please check your connection and try again.');
-  }
-  if (CU?.role==='admin') refreshDash();
-}
-
-function markSatisfied(ticketId, fbId) {
-  const tk = D.tickets.find(x => x.id === ticketId);
-  if (tk) { tk.status = 'closed'; tk.satisfied = true; save(); updateBadges(); }
-  const fb = document.getElementById(fbId);
-  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">✅ Glad it helped! Ticket auto-closed.</span>';
-}
-
-function markUnsatisfied(ticketId, fbId) {
-  // Create or update ticket as escalated
-  let tk = D.tickets.find(x => x.id === ticketId);
-  if (!tk) {
-    tk = {id:ticketId, question:'(from chat)', user:CU?.name||'Unknown', status:'open', ts:Date.now()};
-    D.tickets.push(tk);
-  }
-  tk.escalated = true; tk.status = 'open'; save(); updateBadges();
-  const fb = document.getElementById(fbId);
-  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash — he\'ll follow up shortly.</span>';
-  const m = document.getElementById('msgs');
-  const nd = document.createElement('div');
-  nd.className = 'tn';
-  nd.innerHTML = `📨 Ticket <strong>${ticketId}</strong> escalated to Akash Bansal.`;
-  m.appendChild(nd); m.scrollTop = 99999;
-}
-
-/* TICKETS */
-function renderTK() {
-  const b = document.getElementById('tk-b');
-  const tkQ = (document.getElementById('tk-search')?.value||'').toLowerCase();
-  const tkCat = (document.getElementById('tk-cat-filter')?.value||'');
-  const base = CU?.role === 'admin' ? D.tickets : D.tickets.filter(t => t.user === CU?.name);
-  const list = base.filter(t =>
-    (!tkQ || t.question.toLowerCase().includes(tkQ) || (t.user||'').toLowerCase().includes(tkQ)) &&
-    (!tkCat || t.cat === tkCat)
-  ).reverse();
-  if (!list.length) { b.innerHTML = '<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets yet</div>'; return; }
-  b.innerHTML = list.map(t => `
-    <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh)">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <span style="font-family:var(--fm);font-size:12px;color:var(--tx3)">${t.id}</span>
-        <span style="font-size:13px;font-weight:600;color:var(--tx);flex:1">${t.question}</span>
-        <span class="bdg ${t.status==='open'?'bdg-o':'bdg-c'}">${t.status}</span>
-        ${t.escalated ? '<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 7px;border-radius:4px">↑ Escalated</span>' : ''}
-        ${t.satisfied ? '<span style="font-size:10px;font-weight:700;background:var(--grn-bg);color:var(--grn);padding:2px 7px;border-radius:4px">👍 Satisfied</span>' : ''}
-      </div>
-      <div style="font-size:12px;color:var(--tx2);margin-bottom:${t.adminReply || (CU?.role==='admin' && t.status==='open') ? '10px' : '0'}">By ${t.user} · ${new Date(t.ts).toLocaleDateString('en-IN')}</div>
-      ${t.adminReply ? `<div style="background:var(--grn-bg);border:1px solid rgba(26,60,42,.15);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--tx);margin-bottom:8px"><strong style="font-size:11px;color:var(--grn);text-transform:uppercase;letter-spacing:.04em">Akash's Response</strong><br>${t.adminReply}</div>` : ''}
-      ${CU?.role==='admin' && t.status==='open' ? `
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <input id="rep-${t.id}" class="fi" style="flex:1;font-size:13px;padding:8px 12px" placeholder="Type your response and save to KB…"/>
-          <button onclick="adminReply('${t.id}')" class="bsm bsm-org">Send & Save to KB</button>
-          <button onclick="closeTK('${t.id}')" class="bsm bsm-gh">Close</button>
-        </div>` : ''}
-    </div>`).join('');
-}
-function closeTK(id) {
-  const t = D.tickets.find(x => x.id === id);
-  if (t) { t.status = 'closed'; save(); renderTK(); updateBadges(); if (CU?.role==='admin') refreshDash(); }
-}
-function adminReply(id) {
-  const t = D.tickets.find(x => x.id === id);
-  const reply = document.getElementById('rep-' + id)?.value.trim();
-  if (!reply) { alert('Please type a response.'); return; }
-  t.adminReply = reply;
-  t.status = 'closed';
-  // Auto-save Q&A to knowledge base
-  const existing = D.faqs.find(f => f.q.toLowerCase() === t.question.toLowerCase());
-  if (!existing) {
-    D.faqs.push({ id: Date.now(), tag: 'Admin Response', q: t.question, a: reply, hits: 0 });
-  } else {
-    existing.a = reply;
-  }
-  save(); renderTK(); renderKBS(); renderKBP(); updateBadges();
-  if (CU?.role==='admin') refreshDash();
-}
-
-/* MANAGE USERS */
-function genPassword() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
-  const pw = Array.from({length:10}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
-  document.getElementById('inv-temppass').value = pw;
+function genPasswordStr() {
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
+  return Array.from({length:10},()=>c[Math.floor(Math.random()*c.length)]).join('');
 }
 
 function createDirectAccount() {
@@ -1361,6 +1060,16 @@ function createDirectAccount() {
   const name = email.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase());
   D.members.push({ id: Date.now(), name, email, pass, dept: role, role: 'member', status: 'active', note, joinedAt: Date.now() });
   save(); renderAP(); updateBadges();
+  // Attach copy button handler after render
+  setTimeout(() => {
+    const cb = document.getElementById('inv-copy-btn');
+    if (cb) cb.onclick = () => {
+      navigator.clipboard.writeText(link).then(() => {
+        cb.textContent = '✅ Copied!';
+        setTimeout(() => cb.textContent = '📋 Copy Link', 2000);
+      });
+    };
+  }, 50);
   document.getElementById('inv-to').value = '';
   document.getElementById('inv-temppass').value = '';
   document.getElementById('inv-note').value = '';
