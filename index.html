@@ -341,7 +341,7 @@ function markUnsatisfied(ticketId, fbId) {
       <span class="nbdg" id="n-tk" style="display:none">0</span>
     </button>
     <button class="nb admin-only" id="nav-approvals" onclick="showPg('approvals')">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Approvals
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Manage Users
       <span class="nbdg" id="n-ap" style="display:none">0</span>
     </button>
     <button class="nb admin-only" id="nav-dashboard" onclick="showPg('dashboard')">
@@ -406,8 +406,9 @@ function markUnsatisfied(ticketId, fbId) {
   <div class="pg" id="pg-kb">
     <div class="pi">
       <div class="ph"><h2>Knowledge Base</h2><p>All FM operational Q&amp;A — search, browse, or add new entries</p></div>
-      <div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">
-        <input id="kb-ps" class="fi" style="flex:1" placeholder="Search knowledge base…" oninput="renderKBP()"/>
+      <div style="margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input id="kb-ps" class="fi" style="flex:1;min-width:180px" placeholder="Search knowledge base…" oninput="renderKBP()"/>
+        <select class="fsl" id="kb-cat-filter" style="width:200px" onchange="renderKBP()"></select>
         <button class="bsm bsm-org admin-only" onclick="openKBModal()">+ Add Entry</button>
       </div>
       <div class="kb-grid" id="kb-pg"></div>
@@ -418,6 +419,10 @@ function markUnsatisfied(ticketId, fbId) {
   <div class="pg" id="pg-tickets">
     <div class="pi">
       <div class="ph"><h2>My Tickets</h2><p id="tk-ph">Your raised tickets and admin responses</p></div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <input id="tk-search" class="fi" style="flex:1;min-width:180px" placeholder="Search tickets…" oninput="renderTK()"/>
+        <select class="fsl" id="tk-cat-filter" style="width:200px" onchange="renderTK()"></select>
+      </div>
       <div class="tbl">
         <div class="tbl-h"><div>ID</div><div>Question</div><div>Raised by</div><div>Status</div><div>Action</div></div>
         <div id="tk-b"></div>
@@ -425,22 +430,70 @@ function markUnsatisfied(ticketId, fbId) {
     </div>
   </div>
 
-  <!-- APPROVALS -->
+  <!-- MANAGE USERS -->
   <div class="pg" id="pg-approvals">
     <div class="pi">
-      <div class="ph"><h2>Members & Invites</h2><p>Send invite links or manage existing members</p></div>
-      <!-- INVITE PANEL -->
-      <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:18px;box-shadow:var(--sh)">
-        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px">📨 Send Invite Link</div>
-        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
-          <div style="flex:1;min-width:200px"><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Email</div><input class="fi" type="email" id="inv-to" placeholder="colleague@shadowfax.in"/></div>
+      <div class="ph"><h2>👥 Manage Users</h2><p>Invite team members, manage access, reset passwords and roles</p></div>
 
-          <button class="bsm bsm-org" style="height:42px;padding:0 18px" onclick="createAndCopyInvite()">Generate & Copy Link</button>
+      <!-- STATS ROW -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+        <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;box-shadow:var(--sh)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:4px">Total Members</div>
+          <div id="mu-total" style="font-size:26px;font-weight:700;color:var(--tx);font-family:var(--fn)">0</div>
         </div>
-        <div id="inv-result" style="display:none;margin-top:12px;padding:10px 12px;background:var(--grn-bg);border:1px solid rgba(0,168,107,.2);border-radius:var(--rx);font-size:12px;color:var(--grn)"></div>
+        <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;box-shadow:var(--sh)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:4px">Active</div>
+          <div id="mu-active" style="font-size:26px;font-weight:700;color:var(--grn);font-family:var(--fn)">0</div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;box-shadow:var(--sh)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:4px">Pending Invites</div>
+          <div id="mu-pending" style="font-size:26px;font-weight:700;color:var(--amb);font-family:var(--fn)">0</div>
+        </div>
       </div>
+
+      <!-- INVITE PANEL -->
+      <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--sh)">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px">📨 Invite New Member</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Work Email</div>
+            <input class="fi" type="email" id="inv-to" placeholder="colleague@shadowfax.in"/>
+          </div>
+          <div>
+            <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Role</div>
+            <select class="fsl" id="inv-role-admin">
+              <option value="User">User — Chat access only</option>
+              <option value="Q Trainer">Q Trainer — Can upload training materials</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Temporary Password <span style="color:var(--tx3);font-weight:400;text-transform:none">(user can change after login)</span></div>
+            <div style="position:relative">
+              <input class="fi" type="text" id="inv-temppass" placeholder="e.g. Welcome@123" style="padding-right:100px"/>
+              <button onclick="genPassword()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:5px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rx);font-size:11px;color:var(--tx2);cursor:pointer;font-family:var(--fn);white-space:nowrap">🎲 Generate</button>
+            </div>
+          </div>
+          <div>
+            <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Note (optional)</div>
+            <input class="fi" type="text" id="inv-note" placeholder="e.g. Delhi ops team"/>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="bsm bsm-org" style="padding:10px 20px;font-size:13px" onclick="createAndCopyInvite()">🔗 Generate Invite Link</button>
+          <button class="bsm bsm-org" style="padding:10px 20px;font-size:13px;background:var(--org-lt,var(--grn-bg));color:var(--org,var(--grn));border:1.5px solid var(--org-mid,var(--bd2))" onclick="createDirectAccount()">➕ Create Account Directly</button>
+        </div>
+        <div id="inv-result" style="display:none;margin-top:12px;padding:12px 14px;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);border-radius:var(--rx);font-size:13px;color:var(--grn);line-height:1.7"></div>
+      </div>
+
+      <!-- SEARCH -->
+      <div style="margin-bottom:12px">
+        <input id="mu-search" class="fi" placeholder="Search members by name or email…" oninput="renderAP()"/>
+      </div>
+
       <!-- MEMBERS LIST -->
-      <div id="ap-l" style="display:flex;flex-direction:column;gap:11px"></div>
+      <div id="ap-l" style="display:flex;flex-direction:column;gap:10px"></div>
     </div>
   </div>
 
@@ -631,14 +684,15 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 9; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 12; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
   return {
     config: { apiKey: '' },
     members: [{ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' }],
-    tickets: [], questionLog: [], chatLog: [], training: [], trainingCats: ["Pickup Done but Connection Issue", "Sort Center", "Linehaul and Middle Mile (Network)", "Understanding JIT DC, Via DC and Anchor Shipment", "Key Issues in the Network and How to Solve", "SOP for Last Mile Centers and How to Close Escalations", "FASR and Conversion", "Lost Marking SOP", "POC and Escalation Related", "Other Operational SOP"], trainingCats: ['Pickup Done but Connection Issue', 'Sort Center', 'Linehaul and Middle Mile (Network)', 'Understanding JIT DC, Via DC and Anchor Shipment', 'Key Issues in Network and How to Solve', 'SOP for Last Mile Centers and Closing Escalations', 'FASR and Conversion', 'Lost Marking SOP', 'POC and Escalation Related', 'Other Operational SOP', 'FM – Pickup Models', 'FM – Barcode', 'FM – Cutoff & Priority', 'FM – Courier Service', 'FM – Ops Remarks', 'FM – Terminology', 'General'],
+    tickets: [], questionLog: [], chatLog: [], training: [],
+    cats: ["FM – Pickup Models","FM – Barcode","FM – Cutoff & Priority","FM – Courier Service","FM – Ops Remarks","FM – Terminology","General","Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in the Network and How to Solve","SOP for Last Mile Centers and How to Close Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP"],
     faqs: [
       {id:1,tag:'FM – Pickup Models',q:'What are the two pickup models and how do they differ?',a:'Shadowfax FM has two models:\n1. Marketplace Pickup – Client-specific serviceability. Orders can be picked by both models without movement. For DC visibility, orders can be moved via allocation engine config (contact Sudipta).\n2. Warehouse Pickup – Universal serviceability. If open for one client, it\'s live for all others. Cannot be picked via marketplace model.',hits:0},
       {id:2,tag:'FM – Pickup Models',q:'How to solve pickup confusion between warehouse and marketplace model?',a:'A. Marketplace pickup can be done by both models without order movement. For visibility, move to DC via allocation engine config — handled by Sudipta.\nB. Warehouse pickup cannot be done via marketplace model. Long-term fix: move seller/pincode/client to marketplace. Old orders can be moved via Sudipta.\nC. Client can convert any order from marketplace to warehouse by passing flag under "order_type" column.\nD. Warehouse pincode for orders <5kg should be under "regular" order service.\nE. Marketplace to warehouse switch requires minimum 100 orders.',hits:0},
@@ -685,8 +739,8 @@ function load() {
       d.kbVersion = KB_VERSION;
     }
     // Ensure training categories exist
-    if (!d.trainingCats || d.trainingCats.length === 0) {
-      d.trainingCats = ["Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in the Network and How to Solve","SOP for Last Mile Centers and How to Close Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP"];
+    if (!d.cats || d.cats.length === 0) {
+      d.cats = ["Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in the Network and How to Solve","SOP for Last Mile Centers and How to Close Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP"];
     }
     // Always ensure admin account exists and password is correct
     const adminIdx = d.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
@@ -844,14 +898,18 @@ function acceptInvite() {
 
 function createAndCopyInvite() {
   const email = document.getElementById('inv-to').value.trim().toLowerCase();
-  const dept = 'User';
+  const dept = document.getElementById('inv-role-admin')?.value || 'User';
   const res = document.getElementById('inv-result');
   if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
   if (D.members.find(x => x.email.toLowerCase()===email)) { alert('This email already has an account.'); return; }
   const link = generateInvite(email, dept);
   navigator.clipboard.writeText(link).catch(()=>{});
+  const pass = document.getElementById('inv-temppass')?.value.trim();
   res.style.display = 'block';
-  res.innerHTML = `✅ Invite link generated for <strong>${email}</strong> (${dept})<br><span style="font-family:var(--fm);font-size:11px;word-break:break-all;opacity:.8">${link}</span><br><span style="font-size:11px;opacity:.7">Link copied to clipboard! Valid for 7 days.</span>`;
+  res.innerHTML = '✅ Invite link generated for <strong>' + email + '</strong> (' + dept + ')<br>' +
+    '<span style="font-family:var(--fm);font-size:11px;word-break:break-all;opacity:.8">' + link + '</span><br>' +
+    (pass ? '🔑 They will set their own password via the invite link.<br>' : '') +
+    '<span style="font-size:11px;opacity:.7">📋 Link copied to clipboard! Valid for 7 days.</span>';
   document.getElementById('inv-to').value = '';
 }
 
@@ -972,8 +1030,12 @@ function renderKBS() {
 
 function renderKBP() {
   const q=(document.getElementById('kb-ps')?.value||'').toLowerCase();
+  const cat=(document.getElementById('kb-cat-filter')?.value||'');
   const g=document.getElementById('kb-pg');
-  const f=D.faqs.filter(x=>!q||x.q.toLowerCase().includes(q)||x.a.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q));
+  const f=D.faqs.filter(x=>
+    (!q||x.q.toLowerCase().includes(q)||x.a.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q)) &&
+    (!cat||x.tag===cat)
+  );
   g.innerHTML=f.map(x=>`<div class="kbc"><span class="kbc-tg">${x.tag}</span><div class="kbc-q">${x.q}</div><div class="kbc-a">${x.a.replace(/\n/g,'<br>')}</div>${CU?.role==='admin'?`<div class="kbc-ft"><button class="bsm bsm-gh" onclick="delKB(${x.id})" style="font-size:11px;padding:5px 10px">Delete</button></div>`:''}</div>`).join('')||'<div style="color:var(--tx3);font-size:13px;padding:8px">No entries found.</div>';
 }
 
@@ -984,7 +1046,11 @@ function showKBItem(id) {
   showPg('chat');
 }
 
-function openKBModal(){document.getElementById('kb-modal').classList.add('on');}
+function openKBModal(){
+  const sel = document.getElementById('m-tag');
+  if (sel) sel.innerHTML = (D.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('kb-modal').classList.add('on');
+}
 function closeKBModal(){document.getElementById('kb-modal').classList.remove('on');}
 function saveKB() {
   const q=document.getElementById('m-q').value.trim();
@@ -1131,7 +1197,13 @@ function markUnsatisfied(ticketId, fbId) {
 /* TICKETS */
 function renderTK() {
   const b = document.getElementById('tk-b');
-  const list = CU?.role === 'admin' ? [...D.tickets].reverse() : [...D.tickets].filter(t => t.user === CU?.name).reverse();
+  const tkQ = (document.getElementById('tk-search')?.value||'').toLowerCase();
+  const tkCat = (document.getElementById('tk-cat-filter')?.value||'');
+  const base = CU?.role === 'admin' ? D.tickets : D.tickets.filter(t => t.user === CU?.name);
+  const list = base.filter(t =>
+    (!tkQ || t.question.toLowerCase().includes(tkQ) || (t.user||'').toLowerCase().includes(tkQ)) &&
+    (!tkCat || t.cat === tkCat)
+  ).reverse();
   if (!list.length) { b.innerHTML = '<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets yet</div>'; return; }
   b.innerHTML = list.map(t => `
     <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh)">
@@ -1173,26 +1245,105 @@ function adminReply(id) {
   if (CU?.role==='admin') refreshDash();
 }
 
-/* APPROVALS */
+/* MANAGE USERS */
+function genPassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  const pw = Array.from({length:10}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  document.getElementById('inv-temppass').value = pw;
+}
+
+function createDirectAccount() {
+  const email = document.getElementById('inv-to').value.trim().toLowerCase();
+  const role = document.getElementById('inv-role-admin').value;
+  const pass = document.getElementById('inv-temppass').value.trim();
+  const note = document.getElementById('inv-note').value.trim();
+  const res = document.getElementById('inv-result');
+  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  if (!pass || pass.length < 6) { alert('Please enter a temporary password (min 6 chars) or click Generate.'); return; }
+  if (D.members.find(x => x.email.toLowerCase() === email)) { alert('An account with this email already exists.'); return; }
+  const name = email.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase());
+  D.members.push({ id: Date.now(), name, email, pass, dept: role, role: 'member', status: 'active', note, joinedAt: Date.now() });
+  save(); renderAP(); updateBadges();
+  document.getElementById('inv-to').value = '';
+  document.getElementById('inv-temppass').value = '';
+  document.getElementById('inv-note').value = '';
+  res.style.display = 'block';
+  res.innerHTML = '✅ Account created for <strong>' + email + '</strong><br>' +
+    '🔑 Temporary password: <strong style="font-family:var(--fm);background:var(--s2);padding:2px 8px;border-radius:4px">' + pass + '</strong><br>' +
+    '👤 Role: ' + role + '<br>' +
+    '<span style="font-size:11px;color:var(--tx3)">Share these credentials securely. Ask them to change password after first login.</span>';
+}
+
 function renderAP() {
-  const l=document.getElementById('ap-l');
-  const list=D.members.filter(m=>m.id!==1); // exclude admin
-  if (!list.length){l.innerHTML='<div style="font-size:13px;color:var(--tx3);padding:8px">No members yet. Send an invite link above to add team members.</div>';return;}
-  l.innerHTML=list.map(m=>`
-    <div class="apc">
-      <div class="apav">${m.name[0].toUpperCase()}</div>
-      <div class="api">
-        <div class="apn">${m.name} <span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:6px;${m.status==='active'?'background:var(--grn-bg);color:var(--grn)':'background:var(--amb-bg);color:#92640a'}">${m.status}</span></div>
-        <div class="apm">${m.email} · <span style="font-weight:600">${m.dept}</span></div>
+  const l = document.getElementById('ap-l');
+  const q = (document.getElementById('mu-search')?.value || '').toLowerCase();
+  const all = D.members.filter(m => m.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase());
+  const list = all.filter(m => !q || m.name?.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+
+  // Update stats
+  const muTotal = document.getElementById('mu-total');
+  const muActive = document.getElementById('mu-active');
+  const muPending = document.getElementById('mu-pending');
+  if (muTotal) muTotal.textContent = all.length;
+  if (muActive) muActive.textContent = all.filter(m => m.status === 'active').length;
+  if (muPending) muPending.textContent = all.filter(m => m.status === 'pending').length;
+
+  if (!list.length) {
+    l.innerHTML = '<div style="font-size:13px;color:var(--tx3);padding:16px;text-align:center;background:var(--white);border:1px solid var(--bd);border-radius:var(--r)">No members yet. Use the invite or create account above.</div>';
+    return;
+  }
+
+  const roleColors = { admin: 'var(--org)', 'Q Trainer': 'var(--blu)', User: 'var(--tx2)' };
+  const roleBg = { admin: 'var(--org-lt,var(--grn-bg))', 'Q Trainer': 'var(--blu-bg)', User: 'var(--s2)' };
+
+  l.innerHTML = list.map(m => `
+    <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--org-lt,var(--grn-bg));border:2px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--org,var(--grn));flex-shrink:0;font-family:var(--fn)">${(m.name||m.email)[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          ${m.name || '(no name)'}
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${m.status==='active'?'var(--grn-bg)':'var(--amb-bg)'};color:${m.status==='active'?'var(--grn)':'#92640a'}">${m.status}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${roleBg[m.dept]||'var(--s2)'};color:${roleColors[m.dept]||'var(--tx2)'}">${m.dept||'User'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--tx2)">${m.email}</div>
+        ${m.note ? `<div style="font-size:11px;color:var(--tx3);margin-top:2px">📝 ${m.note}</div>` : ''}
+        ${m.joinedAt ? `<div style="font-size:11px;color:var(--tx3);margin-top:1px">Joined ${new Date(m.joinedAt).toLocaleDateString('en-IN')}</div>` : ''}
       </div>
-      <div style="display:flex;gap:8px">
-        ${m.status==='active'?`<button class="bsm bsm-gh" onclick="removeM(${m.id})">Remove</button>`:`<button class="bsm bsm-gh" onclick="removeM(${m.id})">Delete</button>`}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select onchange="changeRole(${m.id},this.value)" style="padding:6px 10px;border:1.5px solid var(--bd);border-radius:var(--rx);font-size:12px;font-family:var(--fn);color:var(--tx2);background:var(--s2);cursor:pointer">
+          <option value="User" ${(m.dept||'User')==='User'?'selected':''}>User</option>
+          <option value="Q Trainer" ${m.dept==='Q Trainer'?'selected':''}>Q Trainer</option>
+        </select>
+        <button onclick="adminResetPassword(${m.id})" style="padding:7px 12px;background:var(--blu-bg);border:1.5px solid rgba(26,115,232,.2);border-radius:var(--rx);font-size:12px;color:var(--blu);cursor:pointer;font-family:var(--fn);font-weight:500;white-space:nowrap">🔑 Reset Password</button>
+        <button onclick="removeM(${m.id})" style="padding:7px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn)" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--tx2)';this.style.borderColor='var(--bd)'">Remove</button>
       </div>
     </div>`).join('');
 }
+
+function changeRole(id, newRole) {
+  const m = D.members.find(x => x.id === id);
+  if (m) { m.dept = newRole; save(); renderAP(); showToast('✅ Role updated for ' + m.name); }
+}
+
+function adminResetPassword(id) {
+  const m = D.members.find(x => x.id === id);
+  if (!m) return;
+  const newPass = prompt('Reset password for ' + m.name + ' — enter new password (min 6 chars):');
+  if (!newPass) return;
+  if (newPass.length < 6) { alert('Password must be at least 6 characters.'); return; }
+  m.pass = newPass;
+  save();
+  showToast('✅ Password reset for ' + m.name + '. New password: ' + newPass);
+}
+
 function approveM(id){const m=D.members.find(x=>x.id===id);if(m){m.status='active';save();renderAP();updateBadges();}}
 function rejectM(id){if(!confirm('Reject this request?'))return;D.members=D.members.filter(x=>x.id!==id);save();renderAP();updateBadges();}
-function removeM(id){if(!confirm('Remove this member?'))return;D.members=D.members.filter(x=>x.id!==id);save();renderAP();updateBadges();}
+function removeM(id){
+  const m = D.members.find(x=>x.id===id);
+  if(!confirm('Remove ' + (m?.name||'this member') + '? They will lose access immediately.'))return;
+  D.members=D.members.filter(x=>x.id!==id);
+  save();renderAP();updateBadges();
+}
 
 /* DASHBOARD */
 function refreshDash() {
@@ -1251,10 +1402,8 @@ function clearChatLogs() {
 
 /* TRAINING MATERIALS */
 function getCats() {
-  if (!D.trainingCats || !D.trainingCats.length) {
-    D.trainingCats = ["Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in Network and How to Solve","SOP for Last Mile Centers and Closing Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP","FM – Pickup Models","FM – Barcode","FM – Cutoff & Priority","FM – Courier Service","FM – Ops Remarks","FM – Terminology","General"];
-  }
-  return D.trainingCats;
+  if (!D.cats || !D.cats.length) D.cats = defData().cats;
+  return D.cats;
 }
 
 function populateCatSelects() {
@@ -1294,8 +1443,8 @@ function addCategory() {
   const name = inp.value.trim();
   if (!name) return;
   if (getCats().includes(name)) { alert('Category already exists.'); return; }
-  D.trainingCats = getCats();
-  D.trainingCats.push(name);
+  D.cats = getCats();
+  D.cats.push(name);
   save(); inp.value = '';
   populateCatSelects(); renderCatList(); renderTraining();
   showToast('✅ Category added: ' + name);
@@ -1304,8 +1453,8 @@ function addCategory() {
 function deleteCat(idx) {
   const cat = getCats()[idx];
   if (!confirm('Delete category "' + cat + '"? Materials in this category will still exist.')) return;
-  D.trainingCats = getCats();
-  D.trainingCats.splice(idx, 1);
+  D.cats = getCats();
+  D.cats.splice(idx, 1);
   save(); populateCatSelects(); renderCatList(); renderTraining();
 }
 
@@ -1405,7 +1554,7 @@ function deleteTraining(id) {
 }
 
 function getTrainingCatOptions(selectedVal) {
-  const cats = D.trainingCats || [];
+  const cats = D.cats || [];
   return cats.map(c => `<option value="${c}" ${c === selectedVal ? 'selected' : ''}>${c}</option>`).join('');
 }
 
@@ -1421,7 +1570,7 @@ function toggleCatMgr() {
 function renderCatList() {
   const list = document.getElementById('cat-list');
   if (!list) return;
-  const cats = D.trainingCats || [];
+  const cats = D.cats || [];
   list.innerHTML = cats.map((c, i) => `
     <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:4px 4px 4px 12px;font-size:12px;color:var(--tx)">
       <span>${c}</span>
@@ -1433,9 +1582,9 @@ function addCategory() {
   const inp = document.getElementById('cat-new-input');
   const name = inp.value.trim();
   if (!name) return;
-  D.trainingCats = D.trainingCats || [];
-  if (D.trainingCats.includes(name)) { alert('Category already exists.'); return; }
-  D.trainingCats.push(name);
+  D.cats = D.cats || [];
+  if (D.cats.includes(name)) { alert('Category already exists.'); return; }
+  D.cats.push(name);
   save();
   inp.value = '';
   renderCatList();
@@ -1444,20 +1593,33 @@ function addCategory() {
 }
 
 function deleteCategory(idx) {
-  const cat = D.trainingCats[idx];
+  const cat = D.cats[idx];
   if (!confirm('Delete category "' + cat + '"? Materials in this category will still exist.')) return;
-  D.trainingCats.splice(idx, 1);
+  D.cats.splice(idx, 1);
   save();
   renderCatList();
   populateCatSelects();
 }
 
 function populateCatSelects() {
-  const cats = D.trainingCats || [];
-  const uploadSel = document.getElementById('tr-cat');
-  const filterSel = document.getElementById('tr-filter');
-  if (uploadSel) uploadSel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-  if (filterSel) filterSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  const cats = D.cats || [];
+  const opts = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  const allOpts = '<option value="">All Categories</option>' + opts;
+  // Training upload
+  const trCat = document.getElementById('tr-cat');
+  if (trCat) trCat.innerHTML = opts;
+  // Training filter
+  const trFilter = document.getElementById('tr-filter');
+  if (trFilter) trFilter.innerHTML = allOpts;
+  // KB modal tag
+  const mTag = document.getElementById('m-tag');
+  if (mTag) mTag.innerHTML = opts;
+  // KB page filter
+  const kbFilter = document.getElementById('kb-cat-filter');
+  if (kbFilter) kbFilter.innerHTML = allOpts;
+  // Ticket category
+  const tkCat = document.getElementById('tk-cat-filter');
+  if (tkCat) tkCat.innerHTML = allOpts;
 }
 
 /* BADGES */
