@@ -259,76 +259,117 @@ function markUnsatisfied(ticketId, fbId) {
         <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         <div class="al-name">Shadowfax <span>Sales Guide</span></div>
       </div>
-      <div class="al-tagline">FM Operations<br>Knowledge Hub<em>Ask Akash AI — powered by your team's knowledge</em></div>
+      <div class="al-tagline">FM Operations<br>Knowledge Hub<em>Ask Akash AI — powered by your team</em></div>
     </div>
     <div class="al-stats">
-      <div class="al-stat"><div class="al-stat-v">AI-Powered</div><div class="al-stat-l">Instant answers for your team</div></div>
-      <div class="al-stat"><div class="al-stat-v">Invite-Only</div><div class="al-stat-l">Access via admin invite</div></div>
+      <div class="al-stat"><div class="al-stat-v">AI Powered</div><div class="al-stat-l">Instant FM ops answers</div></div>
+      <div class="al-stat"><div class="al-stat-v">Secure</div><div class="al-stat-l">Admin-approved access only</div></div>
     </div>
   </div>
   <div class="ar">
     <div class="ac">
-      <div class="ac-title">Welcome Back</div>
-      <div class="ac-sub">Sign in with your email and password</div>
+      <div class="ac-title">Sign In</div>
+      <div class="ac-sub">Enter your registered email and password</div>
       <div id="le" class="err" style="display:none"></div>
       <div class="fg">
-        <div class="fl">Work Email</div>
-        <input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" autocomplete="email" oninput="clearLoginErr()"/>
+        <div class="fl">Email</div>
+        <input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" autocomplete="email" oninput="document.getElementById('le').style.display='none'"/>
       </div>
       <div class="fg">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
           <div class="fl" style="margin-bottom:0">Password</div>
-          <a onclick="openRecovery()" style="font-size:11px;color:var(--org);cursor:pointer;font-weight:500;text-decoration:none">Forgot password?</a>
+          <a onclick="showSc('sc-forgot')" style="font-size:11px;color:var(--org);cursor:pointer;font-weight:500">Forgot password?</a>
         </div>
         <div style="position:relative">
-          <input class="fi" type="password" id="l-pass" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" oninput="clearLoginErr()" style="padding-right:46px"/>
-          <button type="button" onclick="togglePw('l-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:4px">👁</button>
+          <input class="fi" type="password" id="l-pass" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" oninput="document.getElementById('le').style.display='none'" style="padding-right:44px"/>
+          <button type="button" onclick="togglePw('l-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px">👁</button>
         </div>
       </div>
-      <button class="bp" onclick="doLogin()">Sign In →</button>
-      <div style="margin-top:16px;padding:12px 14px;background:var(--s2);border-radius:var(--rs);font-size:12px;color:var(--tx2);line-height:1.7;text-align:center">
-        New to the portal? <strong style="color:var(--tx)">Ask Akash Bansal</strong> for access.<br>
-        <span style="font-size:11px;color:var(--tx3)">You'll receive a link to set up your account.</span>
+      <button class="bp" onclick="doLogin()">Sign In</button>
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--tx2)">
+        New here? <a onclick="showSc('sc-signup')" style="color:var(--org);cursor:pointer;font-weight:600">Create an account</a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ACCEPT INVITE / SETUP -->
-<div id="sc-invite" class="aw" style="display:none">
+<!-- SIGN UP -->
+<div id="sc-signup" class="aw" style="display:none">
   <div class="al">
     <div class="al-brand">
       <div class="al-logo">
         <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         <div class="al-name">Shadowfax <span>Sales Guide</span></div>
       </div>
-      <div class="al-tagline">You're Invited!<em>Complete setup to access the portal</em></div>
+      <div class="al-tagline">Create Account<em>Admin approves within minutes</em></div>
     </div>
     <div class="al-stats">
-      <div class="al-stat"><div class="al-stat-v">Step 1</div><div class="al-stat-l">Set your name & password</div></div>
-      <div class="al-stat"><div class="al-stat-v">Step 2</div><div class="al-stat-l">Sign in & start using the portal</div></div>
+      <div class="al-stat"><div class="al-stat-v">Step 1</div><div class="al-stat-l">Fill your details & set password</div></div>
+      <div class="al-stat"><div class="al-stat-v">Step 2</div><div class="al-stat-l">Admin approves your request</div></div>
+      <div class="al-stat"><div class="al-stat-v">Step 3</div><div class="al-stat-l">Login with your credentials</div></div>
     </div>
   </div>
   <div class="ar">
     <div class="ac">
-      <div class="ac-title">Set Up Your Account</div>
-      <div class="ac-sub" id="inv-sub">Complete your profile to get started</div>
-      <div class="err" id="inv-err" style="display:none"></div>
-      <div class="fg"><div class="fl">Your Full Name</div><input class="fi" type="text" id="inv-name" placeholder="e.g. Rahul Sharma" autocomplete="name"/></div>
-      <div class="fg"><div class="fl">Email (pre-filled)</div><input class="fi" type="email" id="inv-email" readonly style="background:var(--s2);color:var(--tx2)"/></div>
-      <div class="fg">
-        <div class="fl">Set Your Password</div>
-        <div style="position:relative">
-          <input class="fi" type="password" id="inv-pass" placeholder="Choose a password (min 6 chars)" style="padding-right:46px"/>
-          <button type="button" onclick="togglePw('inv-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:16px;padding:4px">👁</button>
+      <div class="ac-title">Create Account</div>
+      <div class="ac-sub">Fill in your details. Admin will approve your access.</div>
+      <div id="su-err" class="err" style="display:none"></div>
+      <div id="su-suc" style="display:none;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6"></div>
+      <div id="su-form">
+        <div class="fg"><div class="fl">Full Name</div><input class="fi" type="text" id="su-name" placeholder="Your full name" autocomplete="name"/></div>
+        <div class="fg"><div class="fl">Work Email</div><input class="fi" type="email" id="su-email" placeholder="you@shadowfax.in" autocomplete="email"/></div>
+        <div class="fg">
+          <div class="fl">Set Password</div>
+          <div style="position:relative">
+            <input class="fi" type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password" style="padding-right:44px"/>
+            <button type="button" onclick="togglePw('su-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px">👁</button>
+          </div>
         </div>
+        <div class="fg"><div class="fl">Department / Team</div>
+          <select class="fsl" id="su-dept">
+            <option value="">Select your team</option>
+            <option>FM – First Mile</option><option>LM – Last Mile</option>
+            <option>Tech</option><option>Ops</option><option>Finance</option><option>HR</option><option>Other</option>
+          </select>
+        </div>
+        <button class="bp" onclick="doSignup()">Request Access</button>
       </div>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--tx2)">
+        Already have an account? <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:600">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div id="sc-forgot" class="aw" style="display:none">
+  <div class="al">
+    <div class="al-brand">
+      <div class="al-logo">
+        <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="al-name">Shadowfax <span>Sales Guide</span></div>
+      </div>
+      <div class="al-tagline">Reset Password<em>Admin will set a new password for you</em></div>
+    </div>
+    <div class="al-stats">
+      <div class="al-stat"><div class="al-stat-v">Quick Fix</div><div class="al-stat-l">Admin resets within minutes</div></div>
+    </div>
+  </div>
+  <div class="ar">
+    <div class="ac">
+      <div class="ac-title">Forgot Password?</div>
+      <div class="ac-sub">Enter your email. If your account exists, admin will be notified to reset your password.</div>
+      <div id="fp-err" class="err" style="display:none"></div>
+      <div id="fp-suc" style="display:none;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6"></div>
+      <div class="fg"><div class="fl">Your Email</div><input class="fi" type="email" id="fp-email" placeholder="you@shadowfax.in"/></div>
       <div class="fg">
-        <div class="fl">Role</div>
-        <select class="fsl" id="inv-role"><option value="User">User — Chat access only</option><option value="Q Trainer">Q Trainer — Can upload training materials</option></select>
+        <div class="fl">New Password (you choose)</div>
+        <input class="fi" type="password" id="fp-newpass" placeholder="Your new password (min 6 chars)"/>
       </div>
-      <button class="bp" onclick="acceptInvite()">Create Account & Sign In →</button>
-      <div style="margin-top:12px;font-size:12px;color:var(--tx3);text-align:center">Already have an account? <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:500">Sign in here</a></div>
+      <button class="bp" onclick="doForgot()">Request Password Reset</button>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--tx2)">
+        <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:600">← Back to Sign In</a>
+      </div>
     </div>
   </div>
 </div>
@@ -443,7 +484,7 @@ function markUnsatisfied(ticketId, fbId) {
   <!-- MANAGE USERS -->
   <div class="pg" id="pg-approvals">
     <div class="pi">
-      <div class="ph"><h2>👥 Manage Users</h2><p>Invite team members, manage access, reset passwords and roles</p></div>
+      <div class="ph"><h2>👥 Manage Users</h2><p>Review signup requests, approve access, manage roles and passwords</p></div>
 
       <!-- STATS ROW -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
@@ -461,9 +502,10 @@ function markUnsatisfied(ticketId, fbId) {
         </div>
       </div>
 
-      <!-- INVITE PANEL -->
+      <!-- DIRECT CREATE PANEL -->
       <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:var(--sh)">
-        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px">📨 Invite New Member</div>
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">➕ Create Account Directly</div>
+        <div style="font-size:12px;color:var(--tx2);margin-bottom:14px">Or team members can sign up themselves at the portal URL — they will appear below as pending requests.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Work Email</div>
@@ -491,7 +533,7 @@ function markUnsatisfied(ticketId, fbId) {
           </div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="bsm bsm-org" style="padding:10px 20px;font-size:13px" onclick="createAndCopyInvite()">🔗 Generate Invite Link</button>
+          
           <button class="bsm bsm-org" style="padding:10px 20px;font-size:13px;background:var(--org-lt,var(--grn-bg));color:var(--org,var(--grn));border:1.5px solid var(--org-mid,var(--bd2))" onclick="createDirectAccount()">➕ Create Account Directly</button>
         </div>
         <div id="inv-result" style="display:none;margin-top:12px;padding:12px 14px;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);border-radius:var(--rx);font-size:13px;color:var(--grn);line-height:1.7"></div>
@@ -788,265 +830,126 @@ function loadSession() {
 let D = load(), CU = null, CI = null;
 
 function showSc(id) {
-  ['sc-login','sc-invite'].forEach(s => {
+  ['sc-login','sc-signup','sc-forgot'].forEach(s => {
     const el = document.getElementById(s);
-    if (el) el.style.display = s===id?'flex':'none';
+    if (el) el.style.display = s === id ? 'flex' : 'none';
   });
 }
 
-/* PASSWORD LOGIN */
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+/* ── SIGN UP ── */
+function doSignup() {
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const pass = document.getElementById('su-pass').value;
+  const dept = document.getElementById('su-dept').value;
+  const err = document.getElementById('su-err');
+  const suc = document.getElementById('su-suc');
+  err.style.display = 'none'; suc.style.display = 'none';
+
+  if (!name || name.length < 2) { err.style.display='block'; err.textContent='Please enter your full name.'; return; }
+  if (!email || !email.includes('@')) { err.style.display='block'; err.textContent='Please enter a valid email address.'; return; }
+  if (!pass || pass.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters.'; return; }
+  if (!dept) { err.style.display='block'; err.textContent='Please select your department.'; return; }
+  if (D.members.find(m => m.email.toLowerCase() === email)) {
+    err.style.display='block'; err.textContent='An account with this email already exists. Please sign in.'; return;
+  }
+
+  // Add as pending
+  D.members.push({ id: Date.now(), name, email, pass, dept, role: 'member', status: 'pending', requestedAt: Date.now() });
+  save(); updateBadges();
+
+  document.getElementById('su-form').style.display = 'none';
+  suc.style.display = 'block';
+  suc.innerHTML = '✅ <strong>Request submitted!</strong><br><br>' +
+    'Hi ' + name + ', your account request has been sent to <strong>Akash Bansal</strong> for approval.<br><br>' +
+    '📧 You will be able to login once approved.<br>' +
+    '🔑 Use this email + password you just set to login after approval.<br><br>' +
+    '<strong>Email:</strong> ' + email + '<br>' +
+    '<strong>Remember your password</strong> — you will need it to login after approval.<br><br>' +
+    '<button onclick="showSc(\'sc-login\')" style="padding:9px 20px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn)">Go to Sign In</button>';
+}
+
+/* ── FORGOT PASSWORD ── */
+function doForgot() {
+  const email = document.getElementById('fp-email').value.trim().toLowerCase();
+  const newPass = document.getElementById('fp-newpass').value;
+  const err = document.getElementById('fp-err');
+  const suc = document.getElementById('fp-suc');
+  err.style.display = 'none'; suc.style.display = 'none';
+
+  if (!email) { err.style.display='block'; err.textContent='Please enter your email.'; return; }
+  if (!newPass || newPass.length < 6) { err.style.display='block'; err.textContent='Please choose a new password (min 6 chars).'; return; }
+
+  const m = D.members.find(x => x.email.toLowerCase() === email);
+  if (!m) { err.style.display='block'; err.textContent='No account found with this email. Please sign up first.'; return; }
+
+  // Save password reset request
+  m.resetRequest = { newPass, ts: Date.now() };
+  save();
+
+  suc.style.display = 'block';
+  suc.innerHTML = '✅ <strong>Reset request sent!</strong><br><br>' +
+    'Your password reset request has been sent to Akash Bansal.<br>' +
+    'Once approved, you can login with your new password.<br><br>' +
+    '<button onclick="showSc(\'sc-login\')" style="padding:9px 20px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn)">Back to Sign In</button>';
+}
+
+/* ── LOGIN ── */
 function clearLoginErr() {
   const e = document.getElementById('le');
-  if (e) { e.style.display='none'; e.style.background=''; e.style.color=''; e.style.borderColor=''; }
+  if (e) e.style.display = 'none';
 }
 
 function doLogin() {
   const email = document.getElementById('l-email').value.trim().toLowerCase();
   const pass = document.getElementById('l-pass').value;
-  clearLoginErr();
+  const err = document.getElementById('le');
+  err.style.display = 'none';
+
   if (!email) { showLoginErr('Please enter your email address.'); return; }
   if (!pass) { showLoginErr('Please enter your password.'); return; }
-  const byEmail = D.members.find(x => x.email.toLowerCase() === email);
-  if (!byEmail) {
-    showLoginErr('❌ No account found for this email. Ask Akash Bansal for an invite link, or use the setup link shared with you.');
-    return;
-  }
-  if (byEmail.status === 'pending') { showLoginErr('⏳ Your account is pending. Contact Akash Bansal.'); return; }
-  if (byEmail.status !== 'active') { showLoginErr('🚫 Account not active. Contact Akash Bansal.'); return; }
-  if (byEmail.pass !== pass) {
-    showLoginErr('❌ Wrong password. Try again or click "Forgot password?" below.');
-    // Shake password field
-    const pf = document.getElementById('l-pass');
-    pf.style.borderColor = 'var(--red)';
-    pf.style.animation = 'shake .3s ease';
-    setTimeout(()=>{ pf.style.animation=''; pf.style.borderColor=''; }, 600);
-    return;
-  }
-  CU = byEmail;
-  enterPortal();
-}
 
-function toggleDiag() {
-  const out = document.getElementById('diag-out');
-  if (out.style.display !== 'none') { out.style.display='none'; return; }
-  out.style.display = 'block';
-  const email = document.getElementById('l-email').value.trim().toLowerCase();
-  const pass = document.getElementById('l-pass').value;
-  let log = '';
-  log += '=== SHADOWFAX PORTAL DIAGNOSTICS ===\n';
-  log += 'Store key: ' + STORE + '\n';
-  log += 'URL params: ' + window.location.search + '\n\n';
-  try {
-    const raw = localStorage.getItem(STORE);
-    if (!raw) {
-      log += '❌ NO DATA in localStorage\n';
-      log += '   This is a fresh browser — no accounts exist here.\n';
-      log += '   → Ask admin to share a Setup Link with you.\n';
-    } else {
-      const d = JSON.parse(raw);
-      const members = d.members || [];
-      log += '✅ Data found. Members (' + members.length + '):\n';
-      members.forEach(m => {
-        log += '  📧 ' + m.email + '\n';
-        log += '     pass: "' + (m.pass||'(none)') + '" | role: ' + m.role + ' | status: ' + m.status + '\n';
-      });
-      log += '\n';
-      if (email) {
-        const found = members.find(x => x.email.toLowerCase() === email);
-        log += '--- YOUR INPUT ---\n';
-        log += 'Email: "' + email + '"\n';
-        log += 'Password: "' + pass + '"\n\n';
-        if (!found) {
-          log += '❌ Email not found in this browser.\n';
-          log += '   → Ask admin to share the Setup Link again.\n';
-          log += '   → Make sure you opened the Setup Link in THIS browser first.\n';
-        } else {
-          log += '✅ Email found: ' + found.email + '\n';
-          log += 'Status: ' + found.status + '\n';
-          if (found.pass !== pass) {
-            log += '❌ Wrong password.\n';
-            log += '   Stored: "' + found.pass + '"\n';
-            log += '   You entered: "' + pass + '"\n';
-          } else {
-            log += '✅ Password correct.\n';
-            log += '→ Everything looks fine. Try clicking Sign In again.\n';
-          }
-        }
-      } else {
-        log += '→ Enter your email above to diagnose login issues.\n';
-      }
-    }
-  } catch(e) {
-    log += '❌ Error reading store: ' + e.message + '\n';
+  const m = D.members.find(x => x.email.toLowerCase() === email);
+  if (!m) {
+    showLoginErr('❌ No account found. Please sign up first or check your email spelling.');
+    return;
   }
-  out.textContent = log;
+  if (m.status === 'pending') {
+    showLoginErr('⏳ Your account is pending admin approval. Please wait — Akash Bansal will approve shortly.');
+    return;
+  }
+  if (m.status === 'rejected') {
+    showLoginErr('🚫 Your access request was not approved. Contact Akash Bansal for help.');
+    return;
+  }
+  if (m.status !== 'active') {
+    showLoginErr('🚫 Account not active. Contact Akash Bansal.');
+    return;
+  }
+  if (m.pass !== pass) {
+    showLoginErr('❌ Wrong password. Try again or use "Forgot password?" to reset.');
+    document.getElementById('l-pass').style.borderColor = 'var(--red)';
+    setTimeout(() => document.getElementById('l-pass').style.borderColor = '', 1500);
+    return;
+  }
+  CU = m;
+  enterPortal();
 }
 
 function showLoginErr(msg) {
   const err = document.getElementById('le');
   err.style.display = 'block';
   err.textContent = msg;
-  // Shake animation
   err.style.animation = 'none';
   setTimeout(() => err.style.animation = 'shake .3s ease', 10);
 }
 
-/* INVITE SYSTEM */
-function generateInvite(email, dept) {
-  // Generate a simple random temp password
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  const tempPass = Array.from({length:8}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
-  
-  // Add member to local store
-  if (!D.members.find(m => m.email.toLowerCase() === email.toLowerCase())) {
-    const namePart = email.split('@')[0].replace(/[._-]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-    D.members.push({ id: Date.now(), name: namePart, email: email.toLowerCase(), pass: tempPass, dept, role: 'member', status: 'active', joinedAt: Date.now() });
-    save();
-  }
-  
-  // Build simple URL with plain params — no btoa, no tokens
-  const base = window.location.href.split('?')[0].split('#')[0];
-  const url = base + '?e=' + encodeURIComponent(email) + '&p=' + encodeURIComponent(tempPass) + '&r=' + encodeURIComponent(dept);
-  return url;
-}
-
-
-function checkInviteToken() {
-  const params = new URLSearchParams(window.location.search);
-  const setupEmail = params.get('e');
-  const setupPass  = params.get('p');
-  const setupRole  = params.get('r') || 'User';
-
-  if (!setupEmail || !setupPass) return; // No setup params — show normal login
-
-  const email = setupEmail.toLowerCase().trim();
-  const pass  = setupPass.trim();
-  const role  = setupRole.trim();
-
-  // Register account in this browser if not already there
-  if (!D.members.find(m => m.email.toLowerCase() === email)) {
-    const namePart = email.split('@')[0]
-      .replace(/[._-]/g,' ')
-      .split(' ')
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-    D.members.push({
-      id: Date.now(), name: namePart, email, pass,
-      dept: role, role: 'member', status: 'active', joinedAt: Date.now()
-    });
-    save();
-  }
-
-  // Pre-fill login form
-  document.getElementById('l-email').value = email;
-  document.getElementById('l-pass').value  = pass;
-
-  // Show friendly welcome banner
-  const le = document.getElementById('le');
-  le.style.cssText = 'display:block;background:#EBF5EE;border:1px solid rgba(26,60,42,.25);color:#1A3C2A;padding:12px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;line-height:1.7';
-  le.innerHTML = '👋 <strong>Welcome to Shadowfax Sales Guide!</strong><br>Your account is ready. Click <strong>Sign In →</strong> below.';
-
-  // Clean URL without losing the page
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-
-function showInviteError(msg) {
-  document.getElementById('sc-invite').style.display = 'none';
-  document.getElementById('sc-login').style.display = 'flex';
-  const le = document.getElementById('le');
-  le.style.cssText = 'display:block;background:var(--red-bg);border:1px solid rgba(211,47,47,.25);color:var(--red);padding:10px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;';
-  le.textContent = msg;
-}
-
-function acceptInvite() {
-  const name = document.getElementById('inv-name').value.trim();
-  const email = document.getElementById('inv-email').value.trim().toLowerCase();
-  const pass = document.getElementById('inv-pass').value;
-  const dept = document.getElementById('inv-role')?.value || 'User';
-  const token = document.getElementById('inv-email').dataset.token;
-  const err = document.getElementById('inv-err');
-  err.style.display = 'none';
-  if (!name || name.length < 2) { err.style.display='block'; err.textContent='Please enter your full name (at least 2 characters).'; return; }
-  if (!pass || pass.length < 6) { err.style.display='block'; err.textContent='Please choose a password of at least 6 characters.'; return; }
-  // If account already exists (e.g. admin pre-created), just update password and login
-  const existing = D.members.find(x => x.email.toLowerCase()===email);
-  if (existing) {
-    existing.name = name;
-    existing.pass = pass;
-    existing.dept = dept;
-    existing.status = 'active';
-    if (token && D.invites?.[token]) D.invites[token].used = true;
-    save();
-    CU = existing;
-    window.history.replaceState({}, document.title, window.location.pathname);
-    enterPortal();
-    return;
-  }
-  D.members.push({ id: Date.now(), name, email, pass, dept, role:'member', status:'active', joinedAt: Date.now() });
-  if (token && D.invites?.[token]) D.invites[token].used = true;
-  save();
-  CU = D.members.find(x => x.email.toLowerCase()===email);
-  window.history.replaceState({}, document.title, window.location.pathname);
-  enterPortal();
-}
-
-function createAndCopyInvite() {
-  const email = document.getElementById('inv-to').value.trim().toLowerCase();
-  const dept = document.getElementById('inv-role-admin')?.value || 'User';
-  const pass = document.getElementById('inv-temppass').value.trim() || genPasswordStr();
-  const res = document.getElementById('inv-result');
-  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
-
-  // Save account in admin's browser too
-  if (!D.members.find(x => x.email.toLowerCase() === email)) {
-    const namePart = email.split('@')[0].replace(/[._-]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-    D.members.push({ id: Date.now(), name: namePart, email, pass, dept, role: 'member', status: 'active', joinedAt: Date.now() });
-    save(); renderAP(); updateBadges();
-  }
-
-  // Simple setup link — works on any device, any browser
-  const baseUrl = window.location.href.split('?')[0].split('#')[0];
-  const link = baseUrl + '?e=' + encodeURIComponent(email) + '&p=' + encodeURIComponent(pass) + '&r=' + encodeURIComponent(dept);
-  navigator.clipboard.writeText(link).catch(()=>{});
-
-  const waMsg = 'Hi! Your *Shadowfax Sales Guide* account is ready 🎉\n\n' +
-    '👉 *Click this link to sign in:*\n' + link + '\n\n' +
-    'If the link doesn\'t work, login manually:\n' +
-    '🌐 ' + baseUrl + '\n📧 ' + email + '\n🔑 ' + pass + '\n\n' +
-    '_Please change your password after first login._';
-
-  // Attach copy button handler after render
-  setTimeout(() => {
-    const cb = document.getElementById('inv-copy-btn');
-    if (cb) cb.onclick = () => {
-      navigator.clipboard.writeText(link).then(() => {
-        cb.textContent = '✅ Copied!';
-        setTimeout(() => cb.textContent = '📋 Copy Link', 2000);
-      });
-    };
-  }, 50);
-  document.getElementById('inv-to').value = '';
-  if (document.getElementById('inv-temppass')) document.getElementById('inv-temppass').value = '';
-
-  res.style.display = 'block';
-  res.innerHTML =
-    '<div style="font-size:13px;font-weight:700;color:var(--grn);margin-bottom:10px">✅ Invite Link Ready!</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
-      '<div style="background:var(--s2);border-radius:var(--rs);padding:9px 11px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--tx3);margin-bottom:3px">Email</div><div style="font-size:12px;font-weight:600;word-break:break-all">' + email + '</div></div>' +
-      '<div style="background:var(--s2);border-radius:var(--rs);padding:9px 11px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--tx3);margin-bottom:3px">Password</div><div style="font-size:13px;font-weight:700;font-family:var(--fm);letter-spacing:1px">' + pass + '</div></div>' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-      '<button id="copy-inv-btn" onclick="navigator.clipboard.writeText(document.getElementById(\'inv-link-val\').textContent).then(()=>{this.textContent=\'✅ Copied!\';setTimeout(()=>this.textContent=\'🔗 Copy Link\',2000)})" style="flex:1;min-width:120px;padding:9px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">🔗 Copy Link</button>' +
-      '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" target="_blank" style="flex:1;min-width:120px;padding:9px;background:#25D366;color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center">📱 WhatsApp</a>' +
-    '</div>' +
-    '<div style="margin-top:8px;font-size:11px;color:var(--tx3);line-height:1.6">📋 Link also copied to clipboard. User clicks link → account auto-activates → clicks Sign In. Works on any device.</div>';
-}
-
-function genPasswordStr() {
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
-  return Array.from({length:10},()=>c[Math.floor(Math.random()*c.length)]).join('');
-}
 
 function createDirectAccount() {
   const email = document.getElementById('inv-to').value.trim().toLowerCase();
@@ -1086,45 +989,81 @@ function renderAP() {
   const all = D.members.filter(m => m.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase());
   const list = all.filter(m => !q || m.name?.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
 
-  // Update stats
+  // Stats
   const muTotal = document.getElementById('mu-total');
   const muActive = document.getElementById('mu-active');
   const muPending = document.getElementById('mu-pending');
   if (muTotal) muTotal.textContent = all.length;
   if (muActive) muActive.textContent = all.filter(m => m.status === 'active').length;
-  if (muPending) muPending.textContent = all.filter(m => m.status === 'pending').length;
+  if (muPending) muPending.textContent = all.filter(m => m.status === 'pending' || m.resetRequest).length;
 
   if (!list.length) {
-    l.innerHTML = '<div style="font-size:13px;color:var(--tx3);padding:16px;text-align:center;background:var(--white);border:1px solid var(--bd);border-radius:var(--r)">No members yet. Use the invite or create account above.</div>';
+    l.innerHTML = '<div style="font-size:13px;color:var(--tx3);padding:20px;text-align:center;background:var(--white);border:1px solid var(--bd);border-radius:var(--r)">No members yet. They can sign up using the portal URL and you will see their requests here.</div>';
     return;
   }
 
-  const roleColors = { admin: 'var(--org)', 'Q Trainer': 'var(--blu)', User: 'var(--tx2)' };
-  const roleBg = { admin: 'var(--org-lt,var(--grn-bg))', 'Q Trainer': 'var(--blu-bg)', User: 'var(--s2)' };
+  const statusStyle = {
+    active: 'background:var(--grn-bg);color:var(--grn)',
+    pending: 'background:var(--amb-bg);color:#92640a',
+    rejected: 'background:var(--red-bg);color:var(--red)'
+  };
 
   l.innerHTML = list.map(m => `
-    <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div style="width:42px;height:42px;border-radius:50%;background:var(--org-lt,var(--grn-bg));border:2px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--org,var(--grn));flex-shrink:0;font-family:var(--fn)">${(m.name||m.email)[0].toUpperCase()}</div>
-      <div style="flex:1;min-width:200px">
-        <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          ${m.name || '(no name)'}
-          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${m.status==='active'?'var(--grn-bg)':'var(--amb-bg)'};color:${m.status==='active'?'var(--grn)':'#92640a'}">${m.status}</span>
-          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${roleBg[m.dept]||'var(--s2)'};color:${roleColors[m.dept]||'var(--tx2)'}">${m.dept||'User'}</span>
+    <div style="background:var(--white);border:1px solid ${m.status==='pending'||m.resetRequest?'var(--amb)':'var(--bd)'};border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+        <div style="width:42px;height:42px;border-radius:50%;background:var(--s2);border:2px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--org);flex-shrink:0">${(m.name||'?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${m.name}
+            <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;${statusStyle[m.status]||statusStyle.active}">${m.status}</span>
+            ${m.resetRequest ? '<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:12px;background:var(--blu-bg);color:var(--blu)">🔑 Password Reset Requested</span>' : ''}
+          </div>
+          <div style="font-size:12px;color:var(--tx2);margin-bottom:2px">📧 ${m.email}</div>
+          <div style="font-size:12px;color:var(--tx2)">🏢 ${m.dept||'—'} · 👤 ${m.role}</div>
+          ${m.requestedAt ? `<div style="font-size:11px;color:var(--tx3);margin-top:3px">Requested: ${new Date(m.requestedAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
         </div>
-        <div style="font-size:12px;color:var(--tx2)">${m.email}</div>
-        ${m.note ? `<div style="font-size:11px;color:var(--tx3);margin-top:2px">📝 ${m.note}</div>` : ''}
-        ${m.joinedAt ? `<div style="font-size:11px;color:var(--tx3);margin-top:1px">Joined ${new Date(m.joinedAt).toLocaleDateString('en-IN')}</div>` : ''}
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select onchange="changeRole(${m.id},this.value)" style="padding:6px 10px;border:1.5px solid var(--bd);border-radius:var(--rx);font-size:12px;font-family:var(--fn);color:var(--tx2);background:var(--s2);cursor:pointer">
-          <option value="User" ${(m.dept||'User')==='User'?'selected':''}>User</option>
-          <option value="Q Trainer" ${m.dept==='Q Trainer'?'selected':''}>Q Trainer</option>
-        </select>
-        <button onclick="adminResetPassword(${m.id})" style="padding:7px 12px;background:var(--blu-bg);border:1.5px solid rgba(26,115,232,.2);border-radius:var(--rx);font-size:12px;color:var(--blu);cursor:pointer;font-family:var(--fn);font-weight:500;white-space:nowrap">🔑 Reset Password</button>
-        <button onclick="removeM(${m.id})" style="padding:7px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn)" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--tx2)';this.style.borderColor='var(--bd)'">Remove</button>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          ${m.status === 'pending' ? `
+            <div style="display:flex;gap:8px">
+              <button onclick="approveM(${m.id})" style="padding:8px 16px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fn)">✅ Approve</button>
+              <button onclick="rejectM(${m.id})" style="padding:8px 14px;background:transparent;border:1.5px solid var(--red);border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn);color:var(--red)">✕ Reject</button>
+            </div>` : ''}
+          ${m.resetRequest ? `
+            <div style="background:var(--blu-bg);border:1px solid rgba(26,115,232,.2);border-radius:var(--rs);padding:10px 12px;font-size:12px;color:var(--tx);max-width:280px">
+              <div style="font-weight:600;margin-bottom:4px">New password requested:</div>
+              <div style="font-family:var(--fm);font-size:14px;letter-spacing:1px;margin-bottom:8px">${m.resetRequest.newPass}</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="approveReset(${m.id})" style="flex:1;padding:7px;background:var(--blu);color:white;border:none;border-radius:var(--rx);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn)">✅ Approve Reset</button>
+                <button onclick="rejectReset(${m.id})" style="flex:1;padding:7px;background:transparent;border:1px solid var(--bd2);border-radius:var(--rx);font-size:11px;color:var(--tx2);cursor:pointer;font-family:var(--fn)">✕ Dismiss</button>
+              </div>
+            </div>` : ''}
+          ${m.status === 'active' ? `
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <select onchange="changeRole(${m.id},this.value)" style="padding:6px 10px;border:1.5px solid var(--bd);border-radius:var(--rx);font-size:12px;font-family:var(--fn);color:var(--tx2);background:var(--s2)">
+                <option value="User" ${(m.dept==='User'||!m.dept)?'selected':''}>User</option>
+                <option value="Q Trainer" ${m.dept==='Q Trainer'?'selected':''}>Q Trainer</option>
+              </select>
+              <button onclick="adminResetPassword(${m.id})" style="padding:7px 11px;background:var(--blu-bg);border:1.5px solid rgba(26,115,232,.2);border-radius:var(--rx);font-size:12px;color:var(--blu);cursor:pointer;font-family:var(--fn)">🔑 Reset</button>
+              <button onclick="removeM(${m.id})" style="padding:7px 11px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rx);font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn)" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--tx2)'">Remove</button>
+            </div>` : ''}
+        </div>
       </div>
     </div>`).join('');
 }
+
+function approveReset(id) {
+  const m = D.members.find(x => x.id === id);
+  if (!m || !m.resetRequest) return;
+  m.pass = m.resetRequest.newPass;
+  delete m.resetRequest;
+  save(); renderAP(); updateBadges();
+  showToast('✅ Password reset approved for ' + m.name);
+}
+function rejectReset(id) {
+  const m = D.members.find(x => x.id === id);
+  if (m) { delete m.resetRequest; save(); renderAP(); updateBadges(); }
+}
+
 
 function changeRole(id, newRole) {
   const m = D.members.find(x => x.id === id);
@@ -1142,8 +1081,8 @@ function adminResetPassword(id) {
   showToast('✅ Password reset for ' + m.name + '. New password: ' + newPass);
 }
 
-function approveM(id){const m=D.members.find(x=>x.id===id);if(m){m.status='active';save();renderAP();updateBadges();}}
-function rejectM(id){if(!confirm('Reject this request?'))return;D.members=D.members.filter(x=>x.id!==id);save();renderAP();updateBadges();}
+function approveM(id){const m=D.members.find(x=>x.id===id);if(m){m.status='active';save();renderAP();updateBadges();showToast('✅ '+m.name+' approved! They can now log in.');}}
+function rejectM(id){const m=D.members.find(x=>x.id===id);if(!m)return;if(!confirm('Reject '+m.name+'?'))return;m.status='rejected';save();renderAP();updateBadges();}
 function removeM(id){
   const m = D.members.find(x=>x.id===id);
   if(!confirm('Remove ' + (m?.name||'this member') + '? They will lose access immediately.'))return;
@@ -1533,7 +1472,7 @@ document.addEventListener('DOMContentLoaded', function() {
     CU = sessionUser;
     enterPortal();
   } else {
-    checkInviteToken();
+    showSc('sc-login');
   }
 });
 </script>
