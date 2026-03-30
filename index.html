@@ -694,7 +694,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 15; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 16; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -826,38 +826,60 @@ function doLogin() {
   enterPortal();
 }
 
-function debugLogin() {
-  const out = document.getElementById('debug-out');
+function toggleDiag() {
+  const out = document.getElementById('diag-out');
+  if (out.style.display !== 'none') { out.style.display='none'; return; }
   out.style.display = 'block';
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  let log = '';
+  log += '=== SHADOWFAX PORTAL DIAGNOSTICS ===\n';
+  log += 'Store key: ' + STORE + '\n';
+  log += 'URL params: ' + window.location.search + '\n\n';
   try {
     const raw = localStorage.getItem(STORE);
-    const email = document.getElementById('l-email').value.trim().toLowerCase();
-    const pass = document.getElementById('l-pass').value;
     if (!raw) {
-      out.textContent = 'NO DATA in localStorage (key: ' + STORE + ')\nDefault data will be used.\nTry: akash.bansal@shadowfax.in / admin@123';
-      return;
-    }
-    const d = JSON.parse(raw);
-    const members = d.members || [];
-    const found = members.find(x => x.email.toLowerCase() === email);
-    let info = 'STORE KEY: ' + STORE + '\n';
-    info += 'MEMBERS (' + members.length + '):\n';
-    members.forEach(m => {
-      info += '  - ' + m.email + ' | pass: ' + m.pass + ' | role: ' + m.role + ' | status: ' + m.status + '\n';
-    });
-    info += '\nYOU ENTERED:\n  email: ' + email + '\n  pass: ' + pass + '\n';
-    if (found) {
-      info += '\nEMAIL MATCH: YES\n';
-      info += 'PASSWORD MATCH: ' + (found.pass === pass ? 'YES ✅' : 'NO ❌ (stored: "' + found.pass + '")') + '\n';
-      info += 'STATUS: ' + found.status + '\n';
+      log += '❌ NO DATA in localStorage\n';
+      log += '   This is a fresh browser — no accounts exist here.\n';
+      log += '   → Ask admin to share a Setup Link with you.\n';
     } else {
-      info += '\nEMAIL MATCH: NO ❌\n';
-      info += 'Available emails: ' + members.map(m=>m.email).join(', ') + '\n';
+      const d = JSON.parse(raw);
+      const members = d.members || [];
+      log += '✅ Data found. Members (' + members.length + '):\n';
+      members.forEach(m => {
+        log += '  📧 ' + m.email + '\n';
+        log += '     pass: "' + (m.pass||'(none)') + '" | role: ' + m.role + ' | status: ' + m.status + '\n';
+      });
+      log += '\n';
+      if (email) {
+        const found = members.find(x => x.email.toLowerCase() === email);
+        log += '--- YOUR INPUT ---\n';
+        log += 'Email: "' + email + '"\n';
+        log += 'Password: "' + pass + '"\n\n';
+        if (!found) {
+          log += '❌ Email not found in this browser.\n';
+          log += '   → Ask admin to share the Setup Link again.\n';
+          log += '   → Make sure you opened the Setup Link in THIS browser first.\n';
+        } else {
+          log += '✅ Email found: ' + found.email + '\n';
+          log += 'Status: ' + found.status + '\n';
+          if (found.pass !== pass) {
+            log += '❌ Wrong password.\n';
+            log += '   Stored: "' + found.pass + '"\n';
+            log += '   You entered: "' + pass + '"\n';
+          } else {
+            log += '✅ Password correct.\n';
+            log += '→ Everything looks fine. Try clicking Sign In again.\n';
+          }
+        }
+      } else {
+        log += '→ Enter your email above to diagnose login issues.\n';
+      }
     }
-    out.textContent = info;
   } catch(e) {
-    out.textContent = 'Error reading store: ' + e.message;
+    log += '❌ Error reading store: ' + e.message + '\n';
   }
+  out.textContent = log;
 }
 
 function showLoginErr(msg) {
@@ -898,10 +920,10 @@ function checkInviteToken() {
       D.members.push({ id: Date.now(), name: namePart, email, pass, dept: role, role: 'member', status: 'active', joinedAt: Date.now() });
       save();
     }
-    window.history.replaceState({}, document.title, window.location.pathname);
-    // Pre-fill login and show friendly message
+    // Pre-fill login and show friendly message FIRST, then clean URL
     document.getElementById('l-email').value = email;
     document.getElementById('l-pass').value = pass;
+    window.history.replaceState({}, document.title, window.location.pathname);
     const le = document.getElementById('le');
     le.style.cssText = 'display:block;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6';
     le.innerHTML = '👋 <strong>Welcome to Shadowfax Sales Guide!</strong><br>Your account is ready. Email and password are pre-filled — just click <strong>Sign In</strong> below.';
@@ -1795,14 +1817,16 @@ function doChangePw() {
   setTimeout(() => closeModal('chpw-modal'), 1500);
 }
 
-// Auto-login from session or check invite token
-const sessionUser = loadSession();
-if (sessionUser) {
-  CU = sessionUser;
-  enterPortal();
-} else {
-  checkInviteToken();
-}
+// Run after DOM is fully ready
+document.addEventListener('DOMContentLoaded', function() {
+  const sessionUser = loadSession();
+  if (sessionUser) {
+    CU = sessionUser;
+    enterPortal();
+  } else {
+    checkInviteToken();
+  }
+});
 </script>
 </body>
 </html>
