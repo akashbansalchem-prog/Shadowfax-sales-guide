@@ -26,7 +26,48 @@
 <meta http-equiv="Expires" content="0"/>
 <title>Shadowfax Sales Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
+function saveApiKey() {
+  const key = document.getElementById('api-key-input')?.value.trim();
+  if (!key) return;
+  D.config = D.config || {};
+  D.config.groqKey = key;
+  save();
+  const banner = document.getElementById('api-key-banner');
+  if (banner) banner.style.display = 'none';
+  showToast('Groq API key saved!');
+}
+
+function markSatisfied(ticketId, fbId) {
+  D.tickets = D.tickets || [];
+  let tk = D.tickets.find(x => x.id === ticketId);
+  if (!tk) {
+    tk = { id: ticketId, question: '(from chat)', user: CU?.name || 'Unknown', status: 'closed', satisfied: true, ts: Date.now() };
+    D.tickets.push(tk);
+  } else { tk.status = 'closed'; tk.satisfied = true; }
+  save(); updateBadges();
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">Glad it helped!</span>';
+}
+
+function markUnsatisfied(ticketId, fbId) {
+  D.tickets = D.tickets || [];
+  let tk = D.tickets.find(x => x.id === ticketId);
+  if (!tk) {
+    tk = { id: ticketId, question: '(from chat)', user: CU?.name || 'Unknown', status: 'open', escalated: true, ts: Date.now() };
+    D.tickets.push(tk);
+  } else { tk.escalated = true; tk.status = 'open'; }
+  save(); updateBadges();
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">Ticket raised to Akash</span>';
+  const m = document.getElementById('msgs');
+  const nd = document.createElement('div');
+  nd.className = 'tn';
+  nd.innerHTML = 'Ticket <strong>' + ticketId + '</strong> escalated to Akash Bansal.';
+  m.appendChild(nd); m.scrollTop = 99999;
+}
+
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -704,7 +745,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 20; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 21; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -872,25 +913,7 @@ function doLogin() {
 function showLoginErr(msg) { const e=document.getElementById('le'); e.style.display='block'; e.textContent=msg; }
 function clearLoginErr() { const e=document.getElementById('le'); if(e) e.style.display='none'; }
 
-function runDiag() {
-  const box = document.getElementById('diag-box');
-  box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  if (box.style.display === 'none') return;
-  const nl = '\n';
-  const email = (document.getElementById('l-email').value||'').trim().toLowerCase();
-  const pass = document.getElementById('l-pass').value||'';
-  let out = 'STORE: ' + STORE + nl + 'MEMBERS: ' + D.members.length + nl + nl;
-  D.members.forEach(m => { out += '['+m.status+'] '+m.email+nl+'   pass:"'+(m.pass||'NONE')+'" role:'+m.role+nl; });
-  if (email) {
-    out += nl + 'YOUR EMAIL: "' + email + '"' + nl + 'YOUR PASS: "' + pass + '"' + nl;
-    const f = D.members.find(x => x.email.toLowerCase() === email);
-    if (!f) out += 'RESULT: Email not found' + nl;
-    else if (f.status !== 'active') out += 'RESULT: Status is "' + f.status + '"' + nl;
-    else if (f.pass !== pass) out += 'RESULT: Wrong password. Stored: "' + f.pass + '"' + nl;
-    else out += 'RESULT: All correct - click Sign In' + nl;
-  }
-  box.textContent = out;
-}
+
 
 function createDirectAccount() {
   const email = document.getElementById('inv-to').value.trim().toLowerCase();
@@ -1092,17 +1115,6 @@ function getCats() {
   return D.cats;
 }
 
-function populateCatSelects() {
-  const cats = getCats();
-  ['tr-cat','tr-filter'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const cur = el.value;
-    el.innerHTML = (id === 'tr-filter' ? '<option value="">All Categories</option>' : '') +
-      cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    if (cur) el.value = cur;
-  });
-}
 
 function toggleCatMgmt() {
   const panel = document.getElementById('cat-panel');
@@ -1113,28 +1125,7 @@ function toggleCatMgmt() {
   if (!showing) renderCatList();
 }
 
-function renderCatList() {
-  const list = document.getElementById('cat-list');
-  if (!list) return;
-  const cats = getCats();
-  list.innerHTML = cats.map((c, i) => `
-    <div style="display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:4px 10px 4px 12px;font-size:12px;color:var(--tx)">
-      ${c}
-      <button onclick="deleteCat(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;line-height:1;padding:0 2px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--tx3)'">×</button>
-    </div>`).join('');
-}
 
-function addCategory() {
-  const inp = document.getElementById('new-cat-input');
-  const name = inp.value.trim();
-  if (!name) return;
-  if (getCats().includes(name)) { alert('Category already exists.'); return; }
-  D.cats = getCats();
-  D.cats.push(name);
-  save(); inp.value = '';
-  populateCatSelects(); renderCatList(); renderTraining();
-  showToast('✅ Category added: ' + name);
-}
 
 function deleteCat(idx) {
   const cat = getCats()[idx];
@@ -1502,11 +1493,7 @@ function genPassword(){
 }
 
 
-function togglePw(inputId, btn) {
-  const inp = document.getElementById(inputId);
-  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
-  else { inp.type = 'password'; btn.textContent = '👁'; }
-}
+
 
 function openRecovery() {
   document.getElementById('rec-err').style.display = 'none';
@@ -1628,6 +1615,47 @@ document.addEventListener('DOMContentLoaded', function() {
     showSc('sc-login');
   }
 });
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input')?.value.trim();
+  if (!key) return;
+  D.config = D.config || {};
+  D.config.groqKey = key;
+  save();
+  const banner = document.getElementById('api-key-banner');
+  if (banner) banner.style.display = 'none';
+  showToast('Groq API key saved!');
+}
+
+function markSatisfied(ticketId, fbId) {
+  D.tickets = D.tickets || [];
+  let tk = D.tickets.find(x => x.id === ticketId);
+  if (!tk) {
+    tk = { id: ticketId, question: '(from chat)', user: CU?.name || 'Unknown', status: 'closed', satisfied: true, ts: Date.now() };
+    D.tickets.push(tk);
+  } else { tk.status = 'closed'; tk.satisfied = true; }
+  save(); updateBadges();
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--grn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">Glad it helped!</span>';
+}
+
+function markUnsatisfied(ticketId, fbId) {
+  D.tickets = D.tickets || [];
+  let tk = D.tickets.find(x => x.id === ticketId);
+  if (!tk) {
+    tk = { id: ticketId, question: '(from chat)', user: CU?.name || 'Unknown', status: 'open', escalated: true, ts: Date.now() };
+    D.tickets.push(tk);
+  } else { tk.escalated = true; tk.status = 'open'; }
+  save(); updateBadges();
+  const fb = document.getElementById(fbId);
+  if (fb) fb.innerHTML = '<span style="font-size:12px;color:var(--red);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">Ticket raised to Akash</span>';
+  const m = document.getElementById('msgs');
+  const nd = document.createElement('div');
+  nd.className = 'tn';
+  nd.innerHTML = 'Ticket <strong>' + ticketId + '</strong> escalated to Akash Bansal.';
+  m.appendChild(nd); m.scrollTop = 99999;
+}
+
 </script>
 </body>
 </html>
