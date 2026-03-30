@@ -684,7 +684,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 12; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 13; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -859,6 +859,36 @@ function generateInvite(email, dept) {
 
 function checkInviteToken() {
   const params = new URLSearchParams(window.location.search);
+
+  // Handle direct account setup link (?setup=)
+  const setupToken = params.get('setup');
+  if (setupToken) {
+    try {
+      const data = JSON.parse(atob(decodeURIComponent(setupToken)));
+      if (data.type === 'direct' && data.email && data.pass) {
+        // Auto-create account in this browser if not exists
+        const existing = D.members.find(m => m.email.toLowerCase() === data.email.toLowerCase());
+        if (!existing) {
+          D.members.push({ id: Date.now(), name: data.name || data.email.split('@')[0], email: data.email.toLowerCase(), pass: data.pass, dept: data.role || 'User', role: 'member', status: 'active', joinedAt: Date.now() });
+          save();
+        }
+        // Pre-fill login form
+        window.history.replaceState({}, document.title, window.location.pathname);
+        document.getElementById('l-email').value = data.email;
+        document.getElementById('l-pass').value = data.pass;
+        // Show success message
+        const le = document.getElementById('le');
+        le.style.display = 'block';
+        le.style.background = 'var(--grn-bg)';
+        le.style.color = 'var(--grn)';
+        le.style.borderColor = 'rgba(26,60,42,.2)';
+        le.textContent = '✅ Account ready! Your credentials have been pre-filled. Click Sign In.';
+      }
+    } catch(e) { console.log('Setup token error:', e); }
+    return;
+  }
+
+  // Handle invite link (?invite=)
   const token = params.get('invite');
   if (!token) return;
   D.invites = D.invites || {};
@@ -866,7 +896,6 @@ function checkInviteToken() {
   if (!inv) { alert('Invalid or expired invite link.'); return; }
   if (inv.used) { alert('This invite link has already been used.'); return; }
   if (Date.now() - inv.ts > 7 * 24 * 3600 * 1000) { alert('This invite link has expired (7 days).'); return; }
-  // Show invite acceptance screen
   document.getElementById('sc-login').style.display = 'none';
   document.getElementById('sc-invite').style.display = 'flex';
   document.getElementById('inv-email').value = inv.email;
