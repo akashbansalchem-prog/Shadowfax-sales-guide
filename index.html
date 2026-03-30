@@ -347,6 +347,9 @@ function markUnsatisfied(ticketId, fbId) {
     <button class="nb admin-only" id="nav-dashboard" onclick="showPg('dashboard')">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
     </button>
+    <button class="nb" id="nav-training" onclick="showPg('training')">
+      <svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Training
+    </button>
     <button class="nb admin-only" id="nav-chatlogs" onclick="showPg('chatlogs')">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Chat Logs
     </button>
@@ -526,6 +529,88 @@ function markUnsatisfied(ticketId, fbId) {
 </div>
 
 <!-- TOAST -->
+  <!-- TRAINING -->
+  <div class="pg" id="pg-training">
+    <div class="pi">
+      <div class="ph"><h2>📚 Training Materials</h2><p>Videos and documents for team learning</p></div>
+
+      <!-- Upload section — admin only -->
+      <div id="training-upload-section" class="trainer-access" style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:20px;box-shadow:var(--sh)">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px">⬆️ Upload Training Material</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Title</div>
+            <input class="fi" id="tr-title" type="text" placeholder="e.g. FM Pickup Model Training"/></div>
+          <div><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Category</div>
+            <select class="fsl" id="tr-cat"></select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Type</div>
+            <select class="fsl" id="tr-type" onchange="toggleTrainingInput()">
+              <option value="link">🔗 Link (YouTube / Drive / any URL)</option>
+              <option value="doc">📄 Document (PDF / Word / Excel)</option>
+              <option value="video">🎥 Video file (MP4)</option>
+            </select>
+          </div>
+          <div><div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Description (optional)</div>
+            <input class="fi" id="tr-desc" type="text" placeholder="Brief description…"/></div>
+        </div>
+        <!-- Link input -->
+        <div id="tr-link-input" style="margin-bottom:12px">
+          <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">URL</div>
+          <input class="fi" id="tr-url" type="url" placeholder="https://youtube.com/... or https://drive.google.com/..."/>
+        </div>
+        <!-- File input -->
+        <div id="tr-file-input" style="display:none;margin-bottom:12px">
+          <div class="fl" style="font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Upload File</div>
+          <input type="file" id="tr-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.mp4,.mov" style="width:100%;padding:10px;background:var(--s2);border:1.5px dashed var(--bd2);border-radius:var(--rs);font-size:13px;font-family:var(--fn);cursor:pointer"/>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px">Max 10MB. Files are stored in your browser locally.</div>
+        </div>
+        <div id="tr-upload-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:8px"></div>
+        <button class="bsm bsm-org" style="padding:10px 20px" onclick="addTrainingMaterial()">Save Material</button>
+      </div>
+
+      <!-- Category Management (admin only) -->
+      <div id="cat-mgmt" class="admin-only" style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--tx)">🗂 Manage Categories</div>
+          <button onclick="toggleCatMgmt()" id="cat-toggle-btn" style="font-size:12px;color:var(--org);background:none;border:none;cursor:pointer;font-family:var(--fn);font-weight:600">+ Add / Edit</button>
+        </div>
+        <div id="cat-panel" style="display:none">
+          <div id="cat-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <input class="fi" id="new-cat-input" type="text" placeholder="New category name…" style="flex:1;font-size:13px;padding:9px 12px"/>
+            <button onclick="addCategory()" class="bsm bsm-org" style="padding:9px 16px">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter row -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <input id="tr-search" class="fi" style="flex:1;min-width:180px" placeholder="Search training materials…" oninput="renderTraining()"/>
+        <select class="fsl" id="tr-filter" style="width:200px" onchange="renderTraining()"></select>
+      </div>
+
+      <!-- Category Manager — admin only -->
+      <div id="tr-cat-mgr" class="admin-only" style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 20px;margin-bottom:18px;box-shadow:var(--sh)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--tx)">🗂 Manage Categories</div>
+          <button onclick="toggleCatMgr()" id="cat-mgr-toggle" style="font-size:12px;color:var(--org);background:none;border:none;cursor:pointer;font-family:var(--fn);font-weight:600">+ Show / Edit</button>
+        </div>
+        <div id="cat-mgr-body" style="display:none">
+          <div id="cat-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px">
+            <input class="fi" id="cat-new-input" placeholder="New category name…" style="flex:1;font-size:13px;padding:8px 12px"/>
+            <button onclick="addCategory()" class="bsm bsm-org" style="padding:8px 16px">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Materials grid -->
+      <div id="tr-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+    </div>
+  </div>
+
   <!-- CHAT LOGS -->
   <div class="pg" id="pg-chatlogs">
     <div class="pi">
@@ -546,14 +631,14 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 6; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 9; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
   return {
     config: { apiKey: '' },
     members: [{ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' }],
-    tickets: [], questionLog: [], chatLog: [],
+    tickets: [], questionLog: [], chatLog: [], training: [], trainingCats: ["Pickup Done but Connection Issue", "Sort Center", "Linehaul and Middle Mile (Network)", "Understanding JIT DC, Via DC and Anchor Shipment", "Key Issues in the Network and How to Solve", "SOP for Last Mile Centers and How to Close Escalations", "FASR and Conversion", "Lost Marking SOP", "POC and Escalation Related", "Other Operational SOP"], trainingCats: ['Pickup Done but Connection Issue', 'Sort Center', 'Linehaul and Middle Mile (Network)', 'Understanding JIT DC, Via DC and Anchor Shipment', 'Key Issues in Network and How to Solve', 'SOP for Last Mile Centers and Closing Escalations', 'FASR and Conversion', 'Lost Marking SOP', 'POC and Escalation Related', 'Other Operational SOP', 'FM – Pickup Models', 'FM – Barcode', 'FM – Cutoff & Priority', 'FM – Courier Service', 'FM – Ops Remarks', 'FM – Terminology', 'General'],
     faqs: [
       {id:1,tag:'FM – Pickup Models',q:'What are the two pickup models and how do they differ?',a:'Shadowfax FM has two models:\n1. Marketplace Pickup – Client-specific serviceability. Orders can be picked by both models without movement. For DC visibility, orders can be moved via allocation engine config (contact Sudipta).\n2. Warehouse Pickup – Universal serviceability. If open for one client, it\'s live for all others. Cannot be picked via marketplace model.',hits:0},
       {id:2,tag:'FM – Pickup Models',q:'How to solve pickup confusion between warehouse and marketplace model?',a:'A. Marketplace pickup can be done by both models without order movement. For visibility, move to DC via allocation engine config — handled by Sudipta.\nB. Warehouse pickup cannot be done via marketplace model. Long-term fix: move seller/pincode/client to marketplace. Old orders can be moved via Sudipta.\nC. Client can convert any order from marketplace to warehouse by passing flag under "order_type" column.\nD. Warehouse pincode for orders <5kg should be under "regular" order service.\nE. Marketplace to warehouse switch requires minimum 100 orders.',hits:0},
@@ -572,7 +657,12 @@ function defData() {
       {id:15,tag:'FM – Courier Service',q:'How to handle Internal Courier Service orders to ensure nothing goes wrong?',a:'Internal Courier is a personal courier — very high priority:\n1. Align ALL stakeholders via mail or call before pickup\n2. Zero margin for error — escalate proactively\n3. Ensure proper photo + label pasting at pickup',hits:0},
       {id:16,tag:'FM – Ops Remarks',q:'Is "connection miss" a valid ops remark?',a:'NO. "Connection miss will happen" is NOT a valid remark because:\n1. It is an ongoing process and cutoff is already aligned\n2. Orders picked outside cutoff automatically move to the next cutoff\n3. Speed mostly remains the same\nDo not accept this as an excuse.',hits:0},
       {id:17,tag:'FM – Ops Remarks',q:'What is the policy on lost orders?',a:'Losing an order is NOT acceptable at any cost. Zero tolerance policy. Every shipment must be tracked and accounted for. Escalate immediately if an order is at risk of being lost.',hits:0},
-      {id:18,tag:'FM – Serviceability',q:'What is the difference between marketplace and warehouse serviceability?',a:'Marketplace serviceability is CLIENT SPECIFIC — varies per client.\nWarehouse pickup is UNIVERSAL — if open for one client, it is live for all other clients.\nKey distinction when troubleshooting pickup issues.',hits:0}
+      {id:18,tag:'FM – Serviceability',q:'What is the difference between marketplace and warehouse serviceability?',a:'Marketplace serviceability is CLIENT SPECIFIC — varies per client.\nWarehouse pickup is UNIVERSAL — if open for one client, it is live for all other clients.\nKey distinction when troubleshooting pickup issues.',hits:0},
+      {id:19,tag:'FM – Terminology',q:'What is FM pickup or First Mile pickup?',a:'FM pickup = Marketplace Pickup Model. Whenever someone refers to FM pickup or First Mile pickup, they mean the Marketplace Pickup Model. This is client-specific and orders can be picked by both models without movement. For DC visibility, orders can be moved via allocation engine config (contact Sudipta).',hits:0},
+      {id:20,tag:'FM – Terminology',q:'What is warehouse pickup or DC pickup?',a:'Warehouse pickup and DC pickup are the same thing — both refer to the Warehouse Pickup Model. If someone says warehouse pickup or DC pickup, they mean the Warehouse Pickup Model. This is universal — if open for one client, it is live for all others. It cannot be picked via the marketplace model.',hits:0},
+      {id:21,tag:'FM – Terminology',q:'What is Dedicated FM pickup?',a:'Dedicated FM pickup is a center specifically designed for FM (marketplace) pickup. It is located in or near concentrated demand areas to serve high-density seller zones. The focus is purely on First Mile pickup operations.',hits:0},
+      {id:22,tag:'FM – Terminology',q:'What is DC pickup, Seller Direct, or DCFMRTS?',a:'DC pickup, Seller Direct, and DCFMRTS all refer to the same thing — Warehouse Pickup Model. The process is identical for all three terms:\n- DC pickup: pickup from a distribution center/warehouse\n- Seller Direct: seller ships directly from their location picked up warehouse style\n- DCFMRTS: another internal term for the same warehouse pickup process.',hits:0},
+      {id:23,tag:'FM – Terminology',q:'What is LM FM, LM based FM, or FM via LM?',a:'LM FM, LM based FM, and FM via LM all refer to FM (First Mile/Marketplace) pickup done from a center that is accountable for both FM (First Mile) and LM (Last Mile) operations. This is a shared center model where the same facility handles both pickup (FM) and delivery (LM) functions.',hits:0}
     ]
   };
 }
@@ -593,6 +683,10 @@ function load() {
         if (existing) { existing.a = df.a; existing.q = df.q; existing.tag = df.tag; }
       });
       d.kbVersion = KB_VERSION;
+    }
+    // Ensure training categories exist
+    if (!d.trainingCats || d.trainingCats.length === 0) {
+      d.trainingCats = ["Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in the Network and How to Solve","SOP for Last Mile Centers and How to Close Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP"];
     }
     // Always ensure admin account exists and password is correct
     const adminIdx = d.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
@@ -730,7 +824,7 @@ function acceptInvite() {
   const name = document.getElementById('inv-name').value.trim();
   const email = document.getElementById('inv-email').value.trim().toLowerCase();
   const pass = document.getElementById('inv-pass').value;
-  const dept = 'User';
+  const dept = document.getElementById('inv-role')?.value || 'User';
   const token = document.getElementById('inv-email').dataset.token;
   const err = document.getElementById('inv-err');
   err.style.display = 'none';
@@ -821,7 +915,11 @@ function enterPortal() {
   }
   const isAdmin = CU.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && CU.role === 'admin';
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-  updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey(); renderChatLogs();
+  updateBadges(); renderKBS(); renderKBP(); renderTK(); renderAP(); checkApiKey(); renderChatLogs(); renderTraining();
+  // Show training upload section for admin + Q Trainer
+  const uploadSec = document.getElementById('training-upload-section');
+  if (uploadSec) uploadSec.style.display = canTrainAccess() ? 'block' : 'none';
+  populateCatSelects();
   const tkPh = document.getElementById('tk-ph');
   if (tkPh) tkPh.textContent = isAdmin ? 'All team tickets — respond and save answers to KB' : 'Your raised tickets and admin responses';
   if (isAdmin) refreshDash();
@@ -835,6 +933,7 @@ function showPg(n) {
   document.getElementById('nav-'+n).classList.add('on');
   if (n==='dashboard') refreshDash();
   if (n==='chatlogs') renderChatLogs();
+  if (n==='training') renderTraining();
 }
 
 /* 8PM IST MAILER */
@@ -923,18 +1022,40 @@ async function sendMsg() {
   D.chatLog.push({role:'user',text,user:CU?.name||'Unknown',ts:Date.now()});
   save(); updateBadges();
   const typing=addMsg('bot','Thinking…'); typing.classList.add('typing');
-  // Smart KB filtering — only send top 5 most relevant entries to keep prompt small & fast
-  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+  // Smart KB scoring — all entries scored, top 8 sent to AI
+  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   const scored = D.faqs.map(f => {
     const hay = (f.q + ' ' + f.a + ' ' + f.tag).toLowerCase();
-    const score = words.reduce((s, w) => s + (hay.includes(w) ? 1 : 0), 0);
+    let score = 0;
+    words.forEach(w => {
+      if (hay.includes(w)) score += 1;           // word match
+      if (f.q.toLowerCase().includes(w)) score += 2; // extra weight for question match
+      if (f.tag.toLowerCase().includes(w)) score += 1; // tag match
+    });
+    // Boost recently added entries (user-added ones)
+    if (f.id > 100000) score += 0.5;
     return { ...f, score };
   }).sort((a, b) => b.score - a.score);
-  // Always include top 5 relevant + always include top 3 by default if no match
-  const topFaqs = scored.slice(0, 5);
-  const ctx = topFaqs.map((f, i) => `[${i+1}] Q: ${f.q}\nA: ${f.a}`).join('\n\n');
+  // Send top 8 entries — enough context without overloading
+  const topFaqs = scored.slice(0, 8);
+  // Always include ALL entries if KB is small
+  const kbEntries = D.faqs.length <= 25 ? D.faqs : topFaqs;
+  const ctx = kbEntries.map((f, i) => `[${i+1}] TAG:${f.tag}\nQ: ${f.q}\nA: ${f.a}`).join('\n\n');
   try {
-    const sysPrompt = `You are Ask Akash AI, Shadowfax FM ops assistant. Answer using this KB. Understand intent not just keywords. If in KB start with "📚 From Knowledge Base:". If not start with "💡 General Guidance:". Be brief and direct. Key contact: Sudipta (allocation engine/order movements). Never say you don't know about pickup models, barcodes, cutoffs, courier service or serviceability.\n\nKB:\n${ctx}`;
+    const sysPrompt = `You are Ask Akash AI — the Shadowfax FM operations assistant.
+
+KNOWLEDGE BASE (your ONLY source of truth — always check ALL entries before answering):
+${ctx}
+
+STRICT RULES:
+1. Read EVERY KB entry above before answering.
+2. Match by MEANING and INTENT, not just exact words. E.g. "pickup from warehouse using marketplace model" = cross-model pickup = covered in KB.
+3. If answer found in KB → start with "📚 From Knowledge Base:" and give the full answer.
+4. If partially covered → use KB + add brief practical guidance.
+5. If genuinely not in KB → start with "💡 General Guidance:" and answer from FM logistics knowledge.
+6. NEVER say you don't know if the topic is pickup models, barcodes, cutoffs, courier service, serviceability, Delhi volume, or ops remarks.
+7. Be concise. Use bullet points for multi-step answers.
+8. Key contact: Sudipta (allocation engine config, order movements).`;
     // Try Groq (fast, free, reliable) with fallback to Pollinations
     let reply = '';
     try {
@@ -1062,7 +1183,7 @@ function renderAP() {
       <div class="apav">${m.name[0].toUpperCase()}</div>
       <div class="api">
         <div class="apn">${m.name} <span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:6px;${m.status==='active'?'background:var(--grn-bg);color:var(--grn)':'background:var(--amb-bg);color:#92640a'}">${m.status}</span></div>
-        <div class="apm">${m.email} · ${m.dept}</div>
+        <div class="apm">${m.email} · <span style="font-weight:600">${m.dept}</span></div>
       </div>
       <div style="display:flex;gap:8px">
         ${m.status==='active'?`<button class="bsm bsm-gh" onclick="removeM(${m.id})">Remove</button>`:`<button class="bsm bsm-gh" onclick="removeM(${m.id})">Delete</button>`}
@@ -1126,6 +1247,217 @@ function clearChatLogs() {
   D.chatLog = [];
   save();
   renderChatLogs();
+}
+
+/* TRAINING MATERIALS */
+function getCats() {
+  if (!D.trainingCats || !D.trainingCats.length) {
+    D.trainingCats = ["Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in Network and How to Solve","SOP for Last Mile Centers and Closing Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP","FM – Pickup Models","FM – Barcode","FM – Cutoff & Priority","FM – Courier Service","FM – Ops Remarks","FM – Terminology","General"];
+  }
+  return D.trainingCats;
+}
+
+function populateCatSelects() {
+  const cats = getCats();
+  ['tr-cat','tr-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = (id === 'tr-filter' ? '<option value="">All Categories</option>' : '') +
+      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    if (cur) el.value = cur;
+  });
+}
+
+function toggleCatMgmt() {
+  const panel = document.getElementById('cat-panel');
+  const btn = document.getElementById('cat-toggle-btn');
+  const showing = panel.style.display !== 'none';
+  panel.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '+ Add / Edit' : '− Close';
+  if (!showing) renderCatList();
+}
+
+function renderCatList() {
+  const list = document.getElementById('cat-list');
+  if (!list) return;
+  const cats = getCats();
+  list.innerHTML = cats.map((c, i) => `
+    <div style="display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:4px 10px 4px 12px;font-size:12px;color:var(--tx)">
+      ${c}
+      <button onclick="deleteCat(${i})" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;line-height:1;padding:0 2px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--tx3)'">×</button>
+    </div>`).join('');
+}
+
+function addCategory() {
+  const inp = document.getElementById('new-cat-input');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (getCats().includes(name)) { alert('Category already exists.'); return; }
+  D.trainingCats = getCats();
+  D.trainingCats.push(name);
+  save(); inp.value = '';
+  populateCatSelects(); renderCatList(); renderTraining();
+  showToast('✅ Category added: ' + name);
+}
+
+function deleteCat(idx) {
+  const cat = getCats()[idx];
+  if (!confirm('Delete category "' + cat + '"? Materials in this category will still exist.')) return;
+  D.trainingCats = getCats();
+  D.trainingCats.splice(idx, 1);
+  save(); populateCatSelects(); renderCatList(); renderTraining();
+}
+
+function canTrainAccess() {
+  // Admin and Q Trainer can upload/download; team can only view titles
+  return CU && (CU.role === 'admin' || CU.dept === 'Q Trainer');
+}
+
+function toggleTrainingInput() {
+  const type = document.getElementById('tr-type').value;
+  document.getElementById('tr-link-input').style.display = type === 'link' ? 'block' : 'none';
+  document.getElementById('tr-file-input').style.display = type !== 'link' ? 'block' : 'none';
+}
+
+function addTrainingMaterial() {
+  if (!canTrainAccess()) { alert('Only Admin or Q Trainer can upload materials.'); return; }
+  const title = document.getElementById('tr-title').value.trim();
+  const cat = document.getElementById('tr-cat').value;
+  const type = document.getElementById('tr-type').value;
+  const desc = document.getElementById('tr-desc').value.trim();
+  const err = document.getElementById('tr-upload-err');
+  err.style.display = 'none';
+  if (!title) { err.style.display='block'; err.textContent='Please enter a title.'; return; }
+
+  if (type === 'link') {
+    const url = document.getElementById('tr-url').value.trim();
+    if (!url) { err.style.display='block'; err.textContent='Please enter a URL.'; return; }
+    saveTrainingItem({ id: Date.now(), title, cat, type, desc, url, addedBy: CU.name, ts: Date.now() });
+  } else {
+    const file = document.getElementById('tr-file').files[0];
+    if (!file) { err.style.display='block'; err.textContent='Please select a file.'; return; }
+    if (file.size > 10 * 1024 * 1024) { err.style.display='block'; err.textContent='File too large. Max 10MB.'; return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      saveTrainingItem({ id: Date.now(), title, cat, type, desc, fileData: e.target.result, fileName: file.name, fileType: file.type, addedBy: CU.name, ts: Date.now() });
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+}
+
+function saveTrainingItem(item) {
+  D.training = D.training || [];
+  D.training.push(item);
+  save();
+  // Reset form
+  document.getElementById('tr-title').value = '';
+  document.getElementById('tr-url').value = '';
+  document.getElementById('tr-desc').value = '';
+  document.getElementById('tr-file').value = '';
+  renderTraining();
+  showToast('✅ Training material added: ' + item.title);
+}
+
+function renderTraining() {
+  populateCatSelects();
+  renderCatList();
+  const grid = document.getElementById('tr-grid');
+  if (!grid) return;
+  const q = (document.getElementById('tr-search')?.value || '').toLowerCase();
+  const filterCat = document.getElementById('tr-filter')?.value || '';
+  const items = (D.training || []).filter(t =>
+    (!q || t.title.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q) || t.cat.toLowerCase().includes(q)) &&
+    (!filterCat || t.cat === filterCat)
+  );
+  if (!items.length) {
+    grid.innerHTML = '<div style="color:var(--tx3);font-size:13px;padding:8px;grid-column:1/-1">No training materials yet.' + (CU?.role==='admin' ? ' Upload one above.' : ' Ask Akash to add materials.') + '</div>';
+    return;
+  }
+  const icons = { link: '🔗', doc: '📄', video: '🎥' };
+  const colors = { link: 'var(--blu-bg)', doc: 'var(--amb-bg)', video: 'var(--red-bg)' };
+  const textColors = { link: 'var(--blu)', doc: 'var(--amb)', video: 'var(--red)' };
+  grid.innerHTML = items.slice().reverse().map(t => `
+    <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="width:36px;height:36px;border-radius:var(--rs);background:${colors[t.type]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${icons[t.type]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--tx);line-height:1.4;margin-bottom:3px">${t.title}</div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--org);background:var(--org-lt,var(--grn-bg));padding:2px 7px;border-radius:4px">${t.cat}</span>
+        </div>
+      </div>
+      ${t.desc ? `<div style="font-size:12px;color:var(--tx2);line-height:1.5">${t.desc}</div>` : ''}
+      <div style="font-size:11px;color:var(--tx3)">Added by ${t.addedBy} · ${new Date(t.ts).toLocaleDateString('en-IN')}</div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        ${canTrainAccess() && t.type === 'link' ? `<a href="${t.url}" target="_blank" style="flex:1;text-align:center;padding:8px;background:var(--org);color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">Open ${t.url.includes('youtube') ? 'Video' : 'Link'} ↗</a>` : ''}
+        ${canTrainAccess() && t.type !== 'link' && t.fileData ? `<a href="${t.fileData}" download="${t.fileName}" style="flex:1;text-align:center;padding:8px;background:var(--org);color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">Download ${t.fileName}</a>` : ''}
+        ${!canTrainAccess() ? `<span style="flex:1;text-align:center;padding:8px;background:var(--s2);color:var(--tx3);border-radius:var(--rs);font-size:12px;font-family:var(--fn)">🔒 Contact admin for access</span>` : ''}
+        ${canTrainAccess() && CU?.role === 'admin' ? `<button onclick="deleteTraining(${t.id})" style="padding:8px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rs);font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn)" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--tx2)';this.style.borderColor='var(--bd)'">Delete</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function deleteTraining(id) {
+  if (!confirm('Delete this training material?')) return;
+  D.training = (D.training || []).filter(t => t.id !== id);
+  save(); renderTraining();
+}
+
+function getTrainingCatOptions(selectedVal) {
+  const cats = D.trainingCats || [];
+  return cats.map(c => `<option value="${c}" ${c === selectedVal ? 'selected' : ''}>${c}</option>`).join('');
+}
+
+function toggleCatMgr() {
+  const body = document.getElementById('cat-mgr-body');
+  const btn = document.getElementById('cat-mgr-toggle');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '+ Show / Edit' : '− Hide';
+  if (!isOpen) renderCatList();
+}
+
+function renderCatList() {
+  const list = document.getElementById('cat-list');
+  if (!list) return;
+  const cats = D.trainingCats || [];
+  list.innerHTML = cats.map((c, i) => `
+    <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:4px 4px 4px 12px;font-size:12px;color:var(--tx)">
+      <span>${c}</span>
+      <button onclick="deleteCategory(${i})" style="width:20px;height:20px;border-radius:50%;background:transparent;border:none;cursor:pointer;color:var(--tx3);font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--tx3)'">×</button>
+    </div>`).join('');
+}
+
+function addCategory() {
+  const inp = document.getElementById('cat-new-input');
+  const name = inp.value.trim();
+  if (!name) return;
+  D.trainingCats = D.trainingCats || [];
+  if (D.trainingCats.includes(name)) { alert('Category already exists.'); return; }
+  D.trainingCats.push(name);
+  save();
+  inp.value = '';
+  renderCatList();
+  populateCatSelects();
+  showToast('✅ Category added: ' + name);
+}
+
+function deleteCategory(idx) {
+  const cat = D.trainingCats[idx];
+  if (!confirm('Delete category "' + cat + '"? Materials in this category will still exist.')) return;
+  D.trainingCats.splice(idx, 1);
+  save();
+  renderCatList();
+  populateCatSelects();
+}
+
+function populateCatSelects() {
+  const cats = D.trainingCats || [];
+  const uploadSel = document.getElementById('tr-cat');
+  const filterSel = document.getElementById('tr-filter');
+  if (uploadSel) uploadSel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (filterSel) filterSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
 /* BADGES */
