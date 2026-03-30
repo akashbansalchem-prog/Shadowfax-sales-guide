@@ -259,35 +259,37 @@ function markUnsatisfied(ticketId, fbId) {
         <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         <div class="al-name">Shadowfax <span>Sales Guide</span></div>
       </div>
-      <div class="al-tagline">FM Operations<br>Knowledge Hub<em>Ask Akash AI — powered by your team</em></div>
+      <div class="al-tagline">FM Operations<br>Knowledge Hub<em>AI-powered answers for your team</em></div>
     </div>
     <div class="al-stats">
       <div class="al-stat"><div class="al-stat-v">AI Powered</div><div class="al-stat-l">Instant FM ops answers</div></div>
-      <div class="al-stat"><div class="al-stat-v">Secure</div><div class="al-stat-l">Admin-approved access only</div></div>
+      <div class="al-stat"><div class="al-stat-v">Secure</div><div class="al-stat-l">Admin-approved access</div></div>
     </div>
   </div>
   <div class="ar">
     <div class="ac">
       <div class="ac-title">Sign In</div>
-      <div class="ac-sub">Enter your registered email and password</div>
+      <div class="ac-sub">Enter your email and password to access the portal</div>
       <div id="le" class="err" style="display:none"></div>
-      <div class="fg">
-        <div class="fl">Email</div>
-        <input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" autocomplete="email" oninput="document.getElementById('le').style.display='none'"/>
+      <div class="fg"><div class="fl">Email</div>
+        <input class="fi" type="email" id="l-email" placeholder="you@shadowfax.in" autocomplete="email"/>
       </div>
       <div class="fg">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
           <div class="fl" style="margin-bottom:0">Password</div>
-          <a onclick="showSc('sc-forgot')" style="font-size:11px;color:var(--org);cursor:pointer;font-weight:500">Forgot password?</a>
         </div>
         <div style="position:relative">
-          <input class="fi" type="password" id="l-pass" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" oninput="document.getElementById('le').style.display='none'" style="padding-right:44px"/>
+          <input class="fi" type="password" id="l-pass" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:44px"/>
           <button type="button" onclick="togglePw('l-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px">👁</button>
         </div>
       </div>
       <button class="bp" onclick="doLogin()">Sign In</button>
-      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--tx2)">
+      <div style="margin-top:16px;text-align:center;font-size:13px;color:var(--tx2)">
         New here? <a onclick="showSc('sc-signup')" style="color:var(--org);cursor:pointer;font-weight:600">Create an account</a>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
+        <button onclick="runDiag()" style="width:100%;padding:8px;background:transparent;border:1.5px dashed var(--bd2);border-radius:var(--rs);font-size:11px;color:var(--tx3);cursor:pointer;font-family:var(--fn)">🔍 Trouble signing in? Diagnostics</button>
+        <div id="diag-box" style="display:none;margin-top:8px;background:#111;border-radius:var(--rs);padding:12px;font-size:11px;color:#eee;font-family:var(--fm);white-space:pre-wrap;line-height:1.7;max-height:200px;overflow-y:auto"></div>
       </div>
     </div>
   </div>
@@ -304,7 +306,7 @@ function markUnsatisfied(ticketId, fbId) {
       <div class="al-tagline">Create Account<em>Admin approves within minutes</em></div>
     </div>
     <div class="al-stats">
-      <div class="al-stat"><div class="al-stat-v">Step 1</div><div class="al-stat-l">Fill your details & set password</div></div>
+      <div class="al-stat"><div class="al-stat-v">Step 1</div><div class="al-stat-l">Fill details and set password</div></div>
       <div class="al-stat"><div class="al-stat-v">Step 2</div><div class="al-stat-l">Admin approves your request</div></div>
       <div class="al-stat"><div class="al-stat-v">Step 3</div><div class="al-stat-l">Login with your credentials</div></div>
     </div>
@@ -312,63 +314,29 @@ function markUnsatisfied(ticketId, fbId) {
   <div class="ar">
     <div class="ac">
       <div class="ac-title">Create Account</div>
-      <div class="ac-sub">Fill in your details. Admin will approve your access.</div>
+      <div class="ac-sub">Fill your details. Admin will approve your access shortly.</div>
       <div id="su-err" class="err" style="display:none"></div>
-      <div id="su-suc" style="display:none;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6"></div>
+      <div id="su-suc" style="display:none;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.7"></div>
       <div id="su-form">
-        <div class="fg"><div class="fl">Full Name</div><input class="fi" type="text" id="su-name" placeholder="Your full name" autocomplete="name"/></div>
-        <div class="fg"><div class="fl">Work Email</div><input class="fi" type="email" id="su-email" placeholder="you@shadowfax.in" autocomplete="email"/></div>
-        <div class="fg">
-          <div class="fl">Set Password</div>
+        <div class="fg"><div class="fl">Full Name</div><input class="fi" type="text" id="su-name" placeholder="Your full name"/></div>
+        <div class="fg"><div class="fl">Work Email</div><input class="fi" type="email" id="su-email" placeholder="you@shadowfax.in"/></div>
+        <div class="fg"><div class="fl">Set Password</div>
           <div style="position:relative">
-            <input class="fi" type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password" style="padding-right:44px"/>
+            <input class="fi" type="password" id="su-pass" placeholder="Min 6 characters" style="padding-right:44px"/>
             <button type="button" onclick="togglePw('su-pass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);font-size:15px">👁</button>
           </div>
         </div>
-        <div class="fg"><div class="fl">Department / Team</div>
+        <div class="fg"><div class="fl">Department</div>
           <select class="fsl" id="su-dept">
             <option value="">Select your team</option>
-            <option>FM – First Mile</option><option>LM – Last Mile</option>
+            <option>FM - First Mile</option><option>LM - Last Mile</option>
             <option>Tech</option><option>Ops</option><option>Finance</option><option>HR</option><option>Other</option>
           </select>
         </div>
         <button class="bp" onclick="doSignup()">Request Access</button>
-      </div>
-      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--tx2)">
-        Already have an account? <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:600">Sign in</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- FORGOT PASSWORD -->
-<div id="sc-forgot" class="aw" style="display:none">
-  <div class="al">
-    <div class="al-brand">
-      <div class="al-logo">
-        <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-        <div class="al-name">Shadowfax <span>Sales Guide</span></div>
-      </div>
-      <div class="al-tagline">Reset Password<em>Admin will set a new password for you</em></div>
-    </div>
-    <div class="al-stats">
-      <div class="al-stat"><div class="al-stat-v">Quick Fix</div><div class="al-stat-l">Admin resets within minutes</div></div>
-    </div>
-  </div>
-  <div class="ar">
-    <div class="ac">
-      <div class="ac-title">Forgot Password?</div>
-      <div class="ac-sub">Enter your email. If your account exists, admin will be notified to reset your password.</div>
-      <div id="fp-err" class="err" style="display:none"></div>
-      <div id="fp-suc" style="display:none;background:var(--grn-bg);border:1px solid rgba(26,60,42,.2);color:var(--grn);padding:12px 14px;border-radius:var(--rx);font-size:13px;margin-bottom:14px;line-height:1.6"></div>
-      <div class="fg"><div class="fl">Your Email</div><input class="fi" type="email" id="fp-email" placeholder="you@shadowfax.in"/></div>
-      <div class="fg">
-        <div class="fl">New Password (you choose)</div>
-        <input class="fi" type="password" id="fp-newpass" placeholder="Your new password (min 6 chars)"/>
-      </div>
-      <button class="bp" onclick="doForgot()">Request Password Reset</button>
-      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--tx2)">
-        <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:600">← Back to Sign In</a>
+        <div style="margin-top:14px;text-align:center;font-size:13px;color:var(--tx2)">
+          Already have an account? <a onclick="showSc('sc-login')" style="color:var(--org);cursor:pointer;font-weight:600">Sign in</a>
+        </div>
       </div>
     </div>
   </div>
@@ -736,7 +704,7 @@ function markUnsatisfied(ticketId, fbId) {
 <script>
 const STORE = 'sfx_v6';
 const STORE_SESSION = 'sfx_session_v6';
-const KB_VERSION = 17; // bump this number whenever you update the KB — forces all users to get new KB entries
+const KB_VERSION = 20; // bump this number whenever you update the KB — forces all users to get new KB entries
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 
 function defData() {
@@ -775,42 +743,65 @@ function defData() {
 
 function load() {
   try {
-    const r = localStorage.getItem(STORE);
-    if (!r) return defData();
-    const d = JSON.parse(r);
-    // Always sync KB entries from latest code (version-based)
+    const raw = localStorage.getItem(STORE);
+    let d = raw ? JSON.parse(raw) : null;
+
+    // If no data or corrupt, start fresh
+    if (!d || !d.members) {
+      const fresh = defData();
+      localStorage.setItem(STORE, JSON.stringify(fresh));
+      return fresh;
+    }
+
+    let changed = false;
+
+    // Sync KB if version changed
     if (!d.kbVersion || d.kbVersion < KB_VERSION) {
       const def = defData();
       const ids = new Set(d.faqs.map(f=>f.id));
       def.faqs.forEach(f => { if (!ids.has(f.id)) d.faqs.push(f); });
-      // Update existing FAQ answers if they've changed
       def.faqs.forEach(df => {
-        const existing = d.faqs.find(f=>f.id===df.id);
-        if (existing) { existing.a = df.a; existing.q = df.q; existing.tag = df.tag; }
+        const ex = d.faqs.find(f=>f.id===df.id);
+        if (ex) { ex.a=df.a; ex.q=df.q; ex.tag=df.tag; }
       });
       d.kbVersion = KB_VERSION;
+      changed = true;
     }
-    // Ensure training categories exist
-    if (!d.cats || d.cats.length === 0) {
-      d.cats = ["Pickup Done but Connection Issue","Sort Center","Linehaul and Middle Mile (Network)","Understanding JIT DC, Via DC and Anchor Shipment","Key Issues in the Network and How to Solve","SOP for Last Mile Centers and How to Close Escalations","FASR and Conversion","Lost Marking SOP","POC and Escalation Related","Other Operational SOP"];
-    }
-    // Always ensure admin account exists and password is correct
-    const adminIdx = d.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
-    if (adminIdx === -1) {
-      d.members.unshift({ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' });
+
+    // Sync categories
+    if (!d.cats || !d.cats.length) {
+      d.cats = defData().cats;
+      changed = true;
     } else {
-      // Keep admin role and status always correct
-      d.members[adminIdx].role = 'admin';
-      d.members[adminIdx].status = 'active';
-      // Only reset password if it's missing/empty
-      if (!d.members[adminIdx].pass) d.members[adminIdx].pass = 'admin@123';
+      const defCats = defData().cats;
+      defCats.forEach(c => { if (!d.cats.includes(c)) { d.cats.push(c); changed = true; } });
     }
+
+    // Always ensure admin exists and is correct
+    const ai = d.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+    if (ai === -1) {
+      d.members.unshift({ id:1, name:'Akash Bansal', email:ADMIN_EMAIL, pass:'admin@123', dept:'Ops', role:'admin', status:'active' });
+      changed = true;
+    } else {
+      if (d.members[ai].role !== 'admin') { d.members[ai].role = 'admin'; changed = true; }
+      if (d.members[ai].status !== 'active') { d.members[ai].status = 'active'; changed = true; }
+      if (!d.members[ai].pass) { d.members[ai].pass = 'admin@123'; changed = true; }
+    }
+
+    // Save back if we made changes
+    if (changed) localStorage.setItem(STORE, JSON.stringify(d));
     return d;
-  } catch { return defData(); }
+  } catch(e) {
+    console.error('Load error:', e);
+    const fresh = defData();
+    localStorage.setItem(STORE, JSON.stringify(fresh));
+    return fresh;
+  }
 }
 function save() {
   D.kbVersion = KB_VERSION;
-  localStorage.setItem(STORE, JSON.stringify(D));
+  try { localStorage.setItem(STORE, JSON.stringify(D)); }
+  catch(e) { console.error('Save error:', e); }
 }
 
 // Session persistence — stay logged in on page refresh
@@ -830,19 +821,18 @@ function loadSession() {
 let D = load(), CU = null, CI = null;
 
 function showSc(id) {
-  ['sc-login','sc-signup','sc-forgot'].forEach(s => {
+  ['sc-login','sc-signup'].forEach(s => {
     const el = document.getElementById(s);
-    if (el) el.style.display = s === id ? 'flex' : 'none';
+    if (el) el.style.display = (s === id) ? 'flex' : 'none';
   });
 }
 
 function togglePw(inputId, btn) {
   const inp = document.getElementById(inputId);
   inp.type = inp.type === 'password' ? 'text' : 'password';
-  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  btn.textContent = inp.type === 'password' ? '\u{1F441}' : '\u{1F648}';
 }
 
-/* ── SIGN UP ── */
 function doSignup() {
   const name = document.getElementById('su-name').value.trim();
   const email = document.getElementById('su-email').value.trim().toLowerCase();
@@ -851,59 +841,16 @@ function doSignup() {
   const err = document.getElementById('su-err');
   const suc = document.getElementById('su-suc');
   err.style.display = 'none'; suc.style.display = 'none';
-
   if (!name || name.length < 2) { err.style.display='block'; err.textContent='Please enter your full name.'; return; }
   if (!email || !email.includes('@')) { err.style.display='block'; err.textContent='Please enter a valid email address.'; return; }
   if (!pass || pass.length < 6) { err.style.display='block'; err.textContent='Password must be at least 6 characters.'; return; }
   if (!dept) { err.style.display='block'; err.textContent='Please select your department.'; return; }
-  if (D.members.find(m => m.email.toLowerCase() === email)) {
-    err.style.display='block'; err.textContent='An account with this email already exists. Please sign in.'; return;
-  }
-
-  // Add as pending
+  if (D.members.find(m => m.email.toLowerCase() === email)) { err.style.display='block'; err.textContent='Email already registered. Please sign in.'; return; }
   D.members.push({ id: Date.now(), name, email, pass, dept, role: 'member', status: 'pending', requestedAt: Date.now() });
   save(); updateBadges();
-
   document.getElementById('su-form').style.display = 'none';
   suc.style.display = 'block';
-  suc.innerHTML = '✅ <strong>Request submitted!</strong><br><br>' +
-    'Hi ' + name + ', your account request has been sent to <strong>Akash Bansal</strong> for approval.<br><br>' +
-    '📧 You will be able to login once approved.<br>' +
-    '🔑 Use this email + password you just set to login after approval.<br><br>' +
-    '<strong>Email:</strong> ' + email + '<br>' +
-    '<strong>Remember your password</strong> — you will need it to login after approval.<br><br>' +
-    '<button onclick="showSc(\'sc-login\')" style="padding:9px 20px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn)">Go to Sign In</button>';
-}
-
-/* ── FORGOT PASSWORD ── */
-function doForgot() {
-  const email = document.getElementById('fp-email').value.trim().toLowerCase();
-  const newPass = document.getElementById('fp-newpass').value;
-  const err = document.getElementById('fp-err');
-  const suc = document.getElementById('fp-suc');
-  err.style.display = 'none'; suc.style.display = 'none';
-
-  if (!email) { err.style.display='block'; err.textContent='Please enter your email.'; return; }
-  if (!newPass || newPass.length < 6) { err.style.display='block'; err.textContent='Please choose a new password (min 6 chars).'; return; }
-
-  const m = D.members.find(x => x.email.toLowerCase() === email);
-  if (!m) { err.style.display='block'; err.textContent='No account found with this email. Please sign up first.'; return; }
-
-  // Save password reset request
-  m.resetRequest = { newPass, ts: Date.now() };
-  save();
-
-  suc.style.display = 'block';
-  suc.innerHTML = '✅ <strong>Reset request sent!</strong><br><br>' +
-    'Your password reset request has been sent to Akash Bansal.<br>' +
-    'Once approved, you can login with your new password.<br><br>' +
-    '<button onclick="showSc(\'sc-login\')" style="padding:9px 20px;background:var(--org);color:white;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn)">Back to Sign In</button>';
-}
-
-/* ── LOGIN ── */
-function clearLoginErr() {
-  const e = document.getElementById('le');
-  if (e) e.style.display = 'none';
+  suc.innerHTML = '<strong>Request submitted!</strong><br><br>Hi ' + name + ', your account request has been sent to Akash Bansal. Once approved, sign in with your email and the password you just set.';
 }
 
 function doLogin() {
@@ -911,45 +858,39 @@ function doLogin() {
   const pass = document.getElementById('l-pass').value;
   const err = document.getElementById('le');
   err.style.display = 'none';
-
-  if (!email) { showLoginErr('Please enter your email address.'); return; }
-  if (!pass) { showLoginErr('Please enter your password.'); return; }
-
+  if (!email) { err.style.display='block'; err.textContent='Please enter your email address.'; return; }
+  if (!pass) { err.style.display='block'; err.textContent='Please enter your password.'; return; }
   const m = D.members.find(x => x.email.toLowerCase() === email);
-  if (!m) {
-    showLoginErr('❌ No account found. Please sign up first or check your email spelling.');
-    return;
-  }
-  if (m.status === 'pending') {
-    showLoginErr('⏳ Your account is pending admin approval. Please wait — Akash Bansal will approve shortly.');
-    return;
-  }
-  if (m.status === 'rejected') {
-    showLoginErr('🚫 Your access request was not approved. Contact Akash Bansal for help.');
-    return;
-  }
-  if (m.status !== 'active') {
-    showLoginErr('🚫 Account not active. Contact Akash Bansal.');
-    return;
-  }
-  if (m.pass !== pass) {
-    showLoginErr('❌ Wrong password. Try again or use "Forgot password?" to reset.');
-    document.getElementById('l-pass').style.borderColor = 'var(--red)';
-    setTimeout(() => document.getElementById('l-pass').style.borderColor = '', 1500);
-    return;
-  }
+  if (!m) { err.style.display='block'; err.textContent='No account found. Please sign up first.'; return; }
+  if (m.status === 'pending') { err.style.display='block'; err.textContent='Your account is pending admin approval. Please wait.'; return; }
+  if (m.status !== 'active') { err.style.display='block'; err.textContent='Account not active. Contact Akash Bansal.'; return; }
+  if (m.pass !== pass) { err.style.display='block'; err.textContent='Wrong password. Please try again.'; return; }
   CU = m;
   enterPortal();
 }
 
-function showLoginErr(msg) {
-  const err = document.getElementById('le');
-  err.style.display = 'block';
-  err.textContent = msg;
-  err.style.animation = 'none';
-  setTimeout(() => err.style.animation = 'shake .3s ease', 10);
-}
+function showLoginErr(msg) { const e=document.getElementById('le'); e.style.display='block'; e.textContent=msg; }
+function clearLoginErr() { const e=document.getElementById('le'); if(e) e.style.display='none'; }
 
+function runDiag() {
+  const box = document.getElementById('diag-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'none') return;
+  const nl = '\n';
+  const email = (document.getElementById('l-email').value||'').trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value||'';
+  let out = 'STORE: ' + STORE + nl + 'MEMBERS: ' + D.members.length + nl + nl;
+  D.members.forEach(m => { out += '['+m.status+'] '+m.email+nl+'   pass:"'+(m.pass||'NONE')+'" role:'+m.role+nl; });
+  if (email) {
+    out += nl + 'YOUR EMAIL: "' + email + '"' + nl + 'YOUR PASS: "' + pass + '"' + nl;
+    const f = D.members.find(x => x.email.toLowerCase() === email);
+    if (!f) out += 'RESULT: Email not found' + nl;
+    else if (f.status !== 'active') out += 'RESULT: Status is "' + f.status + '"' + nl;
+    else if (f.pass !== pass) out += 'RESULT: Wrong password. Stored: "' + f.pass + '"' + nl;
+    else out += 'RESULT: All correct - click Sign In' + nl;
+  }
+  box.textContent = out;
+}
 
 function createDirectAccount() {
   const email = document.getElementById('inv-to').value.trim().toLowerCase();
@@ -1376,6 +1317,191 @@ function updateBadges() {
   ab.style.display=pend?'flex':'none';ab.textContent=pend;
   renderTK();renderAP();
 }
+
+/* PORTAL CORE */
+function doLogout() {
+  CU = null;
+  sessionStorage.removeItem(STORE_SESSION);
+  const p = document.getElementById('portal');
+  if(p){p.classList.remove('on');p.style.display='none';}
+  document.getElementById('sc-login').style.display='flex';
+  const su=document.getElementById('sc-signup');if(su)su.style.display='none';
+}
+
+function enterPortal() {
+  saveSession(CU);
+  const sl=document.getElementById('sc-login');if(sl)sl.style.display='none';
+  const ss=document.getElementById('sc-signup');if(ss)ss.style.display='none';
+  const p=document.getElementById('portal');
+  p.style.display='flex';p.classList.add('on');
+  document.getElementById('u-av').textContent=CU.name[0].toUpperCase();
+  document.getElementById('u-lb').textContent=CU.name+' · '+CU.role;
+  const isAdmin=CU.email.toLowerCase()===ADMIN_EMAIL.toLowerCase()&&CU.role==='admin';
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAdmin?'':'none');
+  updateBadges();renderKBS();renderKBP();renderTK();renderAP();renderChatLogs();renderTraining();populateCatSelects();
+  const tkPh=document.getElementById('tk-ph');
+  if(tkPh)tkPh.textContent=isAdmin?'All team tickets':'Your raised tickets';
+  const up=document.getElementById('training-upload-section');
+  if(up)up.style.display=canTrainAccess()?'block':'none';
+  scheduleMailer();
+}
+
+function showPg(n) {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const pg=document.getElementById('pg-'+n);if(pg)pg.classList.add('on');
+  const nb=document.getElementById('nav-'+n);if(nb)nb.classList.add('on');
+  if(n==='dashboard')refreshDash();
+  if(n==='chatlogs')renderChatLogs();
+  if(n==='training')renderTraining();
+}
+
+function checkApiKey(){const b=document.getElementById('api-key-banner');if(b)b.style.display='none';}
+
+function scheduleMailer(){
+  if(window._ms)return;window._ms=true;
+  setInterval(async()=>{
+    const now=new Date();const ist=new Date(now.getTime()+5.5*3600000);
+    if(ist.getUTCHours()===20&&ist.getUTCMinutes()===0){
+      const open=D.tickets.filter(t=>t.status==='open');
+      if(open.length)showToast('Day-end: '+open.length+' open ticket(s)');
+    }
+  },60000);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');const tm=document.getElementById('toast-msg');
+  if(!t||!tm)return;tm.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),5000);
+}
+
+function renderKBS(){
+  const q=(document.getElementById('kb-s')?.value||'').toLowerCase();
+  const l=document.getElementById('kb-l');if(!l)return;
+  const f=D.faqs.filter(x=>!q||x.q.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q));
+  const cl=document.getElementById('kb-cl');const cc=document.getElementById('kb-cc');
+  if(cl)cl.textContent=D.faqs.length+' entries';
+  if(cc)cc.textContent=D.faqs.length+' KB entries';
+  l.innerHTML=f.length?f.map(x=>'<div class="kbi" onclick="showKBItem('+x.id+')"><div class="kbi-q">'+x.q+'</div><span class="kbi-tg">'+x.tag+'</span></div>').join(''):'<div style="padding:12px;font-size:12px;color:var(--tx3)">No results</div>';
+}
+
+function renderKBP(){
+  const q=(document.getElementById('kb-ps')?.value||'').toLowerCase();
+  const cat=(document.getElementById('kb-cat-filter')?.value||'');
+  const g=document.getElementById('kb-pg');if(!g)return;
+  const f=D.faqs.filter(x=>(!q||x.q.toLowerCase().includes(q)||x.a.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q))&&(!cat||x.tag===cat));
+  const isAdmin=CU?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  g.innerHTML=f.map(x=>'<div class="kbc"><span class="kbc-tg">'+x.tag+'</span><div class="kbc-q">'+x.q+'</div><div class="kbc-a">'+x.a.replace(/\n/g,'<br>')+'</div>'+(isAdmin?'<div class="kbc-ft"><button class="bsm bsm-gh" onclick="delKB('+x.id+')" style="font-size:11px;padding:5px 10px">Delete</button></div>':'')+'</div>').join('')||'<div style="color:var(--tx3);font-size:13px;padding:8px">No entries found.</div>';
+}
+
+function showKBItem(id){
+  const f=D.faqs.find(x=>x.id===id);if(!f)return;
+  addMsg('bot','<strong>'+f.q+'</strong><br><br>'+f.a.replace(/\n/g,'<br>'));showPg('chat');
+}
+
+function openKBModal(){
+  const sel=document.getElementById('m-tag');
+  if(sel)sel.innerHTML=(D.cats||[]).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+  document.getElementById('kb-modal').classList.add('on');
+}
+function closeKBModal(){document.getElementById('kb-modal').classList.remove('on');}
+function saveKB(){
+  const q=document.getElementById('m-q').value.trim();
+  const a=document.getElementById('m-a').value.trim();
+  const tag=document.getElementById('m-tag').value;
+  if(!q||!a){alert('Please fill in both fields.');return;}
+  D.faqs.push({id:Date.now(),tag,q,a,hits:0});
+  save();document.getElementById('m-q').value='';document.getElementById('m-a').value='';
+  closeKBModal();renderKBS();renderKBP();
+}
+function delKB(id){
+  if(!confirm('Delete this entry?'))return;
+  D.faqs=D.faqs.filter(f=>f.id!==id);save();renderKBS();renderKBP();
+}
+
+function addMsg(role,html){
+  const m=document.getElementById('msgs');
+  const d=document.createElement('div');d.className='msg '+role;
+  const lbl=role==='bot'?'SF':(CU?.name?.[0]?.toUpperCase()||'U');
+  d.innerHTML='<div class="mav '+role+'">'+lbl+'</div><div class="bbl">'+html+'</div>';
+  m.appendChild(d);m.scrollTop=m.scrollHeight;return d;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('ui');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';addMsg('user',text);
+  D.questionLog=D.questionLog||[];D.questionLog.push({text,ts:Date.now(),user:CU?.name||'Unknown'});
+  D.chatLog=D.chatLog||[];D.chatLog.push({role:'user',text,user:CU?.name||'Unknown',ts:Date.now()});
+  save();
+  const typing=addMsg('bot','Thinking…');typing.classList.add('typing');
+  const words=text.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+  const scored=D.faqs.map(f=>{
+    const hay=(f.q+' '+f.a+' '+f.tag).toLowerCase();
+    let score=0;words.forEach(w=>{if(hay.includes(w))score++;if(f.q.toLowerCase().includes(w))score+=2;});
+    return{...f,score};
+  }).sort((a,b)=>b.score-a.score);
+  const kbEntries=D.faqs.length<=25?D.faqs:scored.slice(0,8);
+  const ctx=kbEntries.map((f,i)=>'['+(i+1)+'] Q:'+f.q+'\nA:'+f.a).join('\n\n');
+  const sys='You are Ask Akash AI, Shadowfax FM assistant. Answer using this KB. If in KB say "From Knowledge Base:". If not say "General Guidance:". Be brief.\n\nKB:\n'+ctx;
+  try{
+    let reply='';
+    try{
+      const gr=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(D.config?.groqKey||'')},
+        body:JSON.stringify({model:'llama3-8b-8192',max_tokens:500,messages:[{role:'system',content:sys},{role:'user',content:text}]}),
+        signal:AbortSignal.timeout(12000)
+      });
+      if(gr.ok){const gd=await gr.json();reply=gd.choices?.[0]?.message?.content||'';}
+    }catch(e){reply='';}
+    if(!reply){
+      const pr=await fetch('https://text.pollinations.ai/'+encodeURIComponent(sys+'\n\nQuestion: '+text),{signal:AbortSignal.timeout(20000)});
+      if(pr.ok)reply=await pr.text();
+    }
+    if(!reply){const best=scored[0];reply=best&&best.score>0?'From Knowledge Base:\n\n'+best.a:'Could not connect. Please try again.';}
+    D.chatLog.push({role:'bot',text:reply,user:'Ask Akash AI',ts:Date.now()});
+    D.faqs.forEach(f=>{if(reply.toLowerCase().includes(f.q.toLowerCase().slice(0,20)))f.hits=(f.hits||0)+1;});
+    save();typing.remove();addMsg('bot',reply.replace(/\n/g,'<br>'));
+    const tkId='T-'+String((D.tickets||[]).length+1).padStart(3,'0');
+    const fbId='fb_'+Date.now();
+    const fbWrap=document.createElement('div');fbWrap.id=fbId;
+    fbWrap.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 6px 10px 44px;flex-wrap:wrap;';
+    fbWrap.innerHTML='<span style="font-size:12px;color:var(--tx3)">Was this helpful?</span>'+
+      '<button onclick="markSatisfied(\''+tkId+'\',\''+fbId+'\');" style="background:var(--grn-bg);border:1.5px solid rgba(26,60,42,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--grn);cursor:pointer;font-family:var(--fn);font-weight:600;">Yes, helpful</button>'+
+      '<button onclick="markUnsatisfied(\''+tkId+'\',\''+fbId+'\');" style="background:var(--red-bg);border:1.5px solid rgba(211,47,47,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--fn);font-weight:600;">No - Raise Ticket</button>';
+    document.getElementById('msgs').appendChild(fbWrap);
+    document.getElementById('msgs').scrollTop=99999;
+  }catch(e){typing.remove();addMsg('bot','Could not get a response. Please check your connection.');}
+  if(CU?.role==='admin')refreshDash();
+}
+
+function renderTK(){
+  const b=document.getElementById('tk-b');if(!b)return;
+  const isAdmin=CU?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  const base=isAdmin?D.tickets:D.tickets.filter(t=>t.user===CU?.name);
+  const list=[...base].reverse();
+  if(!list.length){b.innerHTML='<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets yet</div>';return;}
+  b.innerHTML=list.map(t=>'<div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-family:var(--fm);font-size:12px;color:var(--tx3)">'+t.id+'</span><span style="font-size:13px;font-weight:600;color:var(--tx);flex:1">'+(t.question||'').slice(0,80)+'</span><span class="bdg '+(t.status==='open'?'bdg-o':'bdg-c')+'">'+t.status+'</span>'+(t.escalated?'<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 7px;border-radius:4px">Escalated</span>':'')+'</div><div style="font-size:12px;color:var(--tx2)">By '+t.user+' · '+new Date(t.ts).toLocaleDateString('en-IN')+'</div>'+(t.adminReply?'<div style="background:var(--grn-bg);border:1px solid rgba(26,60,42,.15);border-radius:var(--rs);padding:10px 14px;font-size:13px;margin-top:8px"><strong style="font-size:11px;color:var(--grn);text-transform:uppercase">Akash Response</strong><br>'+t.adminReply+'</div>':'')+(isAdmin&&t.status==='open'?'<div style="display:flex;gap:8px;margin-top:10px"><input id="rep-'+t.id+'" class="fi" style="flex:1;font-size:13px;padding:8px 12px" placeholder="Type your response..."/><button onclick="adminReply(\''+t.id+'\')" class="bsm bsm-org">Send & Save to KB</button><button onclick="closeTK(\''+t.id+'\')" class="bsm bsm-gh">Close</button></div>':'')+'</div>').join('');
+}
+
+function closeTK(id){const t=D.tickets.find(x=>x.id===id);if(t){t.status='closed';save();renderTK();updateBadges();}}
+function adminReply(id){
+  const t=D.tickets.find(x=>x.id===id);
+  const reply=document.getElementById('rep-'+id)?.value.trim();
+  if(!reply){alert('Please type a response.');return;}
+  t.adminReply=reply;t.status='closed';
+  const ex=D.faqs.find(f=>f.q.toLowerCase()===t.question.toLowerCase());
+  if(!ex)D.faqs.push({id:Date.now(),tag:'Admin Response',q:t.question,a:reply,hits:0});
+  else ex.a=reply;
+  save();renderTK();renderKBS();renderKBP();updateBadges();
+}
+function genPassword(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  const el=document.getElementById('inv-temppass');
+  if(el)el.value=Array.from({length:10},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+
 function togglePw(inputId, btn) {
   const inp = document.getElementById(inputId);
   if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
@@ -1466,6 +1592,33 @@ function doChangePw() {
 }
 
 // Run after DOM is fully ready
+function runDiag() {
+  const box = document.getElementById('diag-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'none') return;
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  const nl = '\n';
+  let out = '=== DIAGNOSTICS ===' + nl;
+  out += 'Store: ' + STORE + nl;
+  out += 'Members: ' + D.members.length + nl + nl;
+  D.members.forEach(m => {
+    out += '[' + m.status + '] ' + m.email + nl;
+    out += '  pass: "' + (m.pass||'EMPTY') + '" | role: ' + m.role + nl;
+  });
+  if (email) {
+    out += nl + '--- YOUR INPUT ---' + nl;
+    out += 'email: "' + email + '"' + nl;
+    out += 'pass: "' + pass + '"' + nl;
+    const found = D.members.find(x => x.email.toLowerCase() === email);
+    if (!found) out += '=> EMAIL NOT FOUND' + nl;
+    else if (found.status !== 'active') out += '=> STATUS: ' + found.status + ' (not active)' + nl;
+    else if (found.pass !== pass) out += '=> WRONG PASSWORD. Stored: "' + found.pass + '"' + nl;
+    else out += '=> ALL CORRECT - click Sign In' + nl;
+  }
+  box.textContent = out;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const sessionUser = loadSession();
   if (sessionUser) {
