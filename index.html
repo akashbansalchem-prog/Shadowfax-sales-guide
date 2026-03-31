@@ -139,6 +139,11 @@ function mergeRemote(local, remote) {
   (local.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m);
   (remote.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m); // remote wins for existing
   merged.members = Object.values(memberMap);
+  // Preserve API key — whichever has it, keep it
+  if (local?.config?.groqKey && !merged.config?.groqKey) {
+    merged.config = merged.config || {};
+    merged.config.groqKey = local.config.groqKey;
+  }
   // Ensure admin
   const ai = merged.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
   if (ai === -1) merged.members.unshift({id:1,name:'Akash Bansal',email:ADMIN_EMAIL,pass:'admin@123',dept:'Ops',role:'admin',status:'active'});
@@ -1047,7 +1052,10 @@ function markUnsatisfied(ticketId, fbId) {
 }
 function saveApiKey() {
   const key=document.getElementById('api-key-input')?.value.trim(); if(!key) return;
-  D.config=D.config||{}; D.config.groqKey=key; save();
+  D.config=D.config||{}; D.config.groqKey=key;
+  // Save locally AND to JSONBin immediately
+  try { localStorage.setItem(STORE, JSON.stringify(D)); } catch(e) {}
+  saveToBlob(D).then(()=>showToast('API key saved!')).catch(()=>showToast('Key saved locally'));
   const b=document.getElementById('api-key-banner'); if(b) b.style.display='none';
   showToast('API key saved!');
 }
@@ -1664,7 +1672,13 @@ function scheduleMailer(){
   },60000);
 }
 
-function checkApiKey(){const b=document.getElementById('api-key-banner');if(b)b.style.display='none';}
+function checkApiKey() {
+  const b = document.getElementById('api-key-banner');
+  if (!b) return;
+  // Show banner only if no Groq key saved
+  const hasKey = D.config?.groqKey && D.config.groqKey.length > 10;
+  b.style.display = hasKey ? 'none' : 'flex';
+}
 
 function showPg(n) {
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
