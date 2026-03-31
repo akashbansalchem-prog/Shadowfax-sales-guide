@@ -720,7 +720,7 @@ function markUnsatisfied(ticketId, fbId) {
 
 const STORE = 'sfx_portal_v35';
 const STORE_SESSION = 'sfx_sess_v35';
-const KB_VERSION = 35;
+const KB_VERSION = 36;
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 const JSONBIN_KEY = '$2a$10$mSzeWEdTZkxzKqb/JigIjes9rKWSTj3jhBJZ8RuI0Be0tOhM6zgYq';
@@ -891,25 +891,32 @@ function runDiag() {
 }
 function markSatisfied(ticketId, fbId) {
   D.tickets=D.tickets||[];
-  let tk=D.tickets.find(x=>x.id===ticketId);
-  if (!tk) { tk={id:ticketId,question:'(from chat)',user:CU?.name||'Unknown',status:'closed',satisfied:true,ts:Date.now()}; D.tickets.push(tk); }
-  else { tk.status='closed'; tk.satisfied=true; }
+  const tk=D.tickets.find(x=>x.id===ticketId);
+  if (tk) {
+    tk.status='closed'; tk.satisfied=true;
+    // Auto-learn: when user confirms answer was helpful, save Q+A to KB
+    if (tk.question && tk.aiReply) {
+      const exists=(D.faqs||[]).find(f=>f.q.toLowerCase().trim()===tk.question.toLowerCase().trim());
+      if (!exists) {
+        D.faqs=D.faqs||[];
+        D.faqs.push({id:Date.now(),tag:'Auto-Learned',q:tk.question,a:tk.aiReply,hits:0});
+        renderKBS();
+      }
+    }
+  }
   save(); updateBadges();
   const fb=document.getElementById(fbId);
-  if (fb) fb.innerHTML='<span style="font-size:12px;color:var(--grn);padding:5px 13px;background:var(--grn-bg);border-radius:20px">Glad it helped!</span>';
+  if(fb)fb.innerHTML='<span style="font-size:12px;color:var(--grn);font-family:var(--fn);padding:5px 13px;background:var(--grn-bg);border-radius:20px;border:1.5px solid rgba(26,60,42,.2)">✅ Glad it helped!</span>';
 }
 function markUnsatisfied(ticketId, fbId) {
   D.tickets=D.tickets||[];
-  let tk=D.tickets.find(x=>x.id===ticketId);
-  if (!tk) { tk={id:ticketId,question:'(from chat)',user:CU?.name||'Unknown',status:'open',escalated:true,ts:Date.now()}; D.tickets.push(tk); }
-  else { tk.escalated=true; tk.status='open'; }
+  const tk=D.tickets.find(x=>x.id===ticketId);
+  if(tk){ tk.escalated=true; tk.status='open'; delete tk.aiReply; }
   save(); updateBadges();
   const fb=document.getElementById(fbId);
-  if (fb) fb.innerHTML='<span style="font-size:12px;color:var(--red);padding:5px 13px;background:var(--red-bg);border-radius:20px">Ticket raised to Akash</span>';
-  const msgs=document.getElementById('msgs'); if (!msgs) return;
-  const nd=document.createElement('div'); nd.className='tn';
-  nd.innerHTML='Ticket <strong>'+ticketId+'</strong> escalated.';
-  msgs.appendChild(nd); msgs.scrollTop=99999;
+  if(fb)fb.innerHTML='<span style="font-size:12px;color:var(--red);font-family:var(--fn);padding:5px 13px;background:var(--red-bg);border-radius:20px;border:1.5px solid rgba(211,47,47,.2)">🎫 Ticket raised to Akash</span>';
+  const msgs=document.getElementById('msgs');
+  if(msgs){const nd=document.createElement('div');nd.className='tn';nd.innerHTML='Ticket <strong>'+ticketId+'</strong> escalated to Akash Bansal.';msgs.appendChild(nd);msgs.scrollTop=99999;}
 }
 function saveApiKey() {
   const key = document.getElementById('api-key-input')?.value.trim();
@@ -1038,7 +1045,7 @@ async function sendMsg(){
   }).sort((a,b)=>b.score-a.score);
   const kbEntries=D.faqs.length<=25?D.faqs:scored.slice(0,8);
   const ctx=kbEntries.map((f,i)=>'['+(i+1)+'] Q:'+f.q+'\nA:'+f.a).join('\n\n');
-  const sys='You are Ask Akash AI, Shadowfax FM assistant. Answer using this KB. If in KB say "From Knowledge Base:". If not say "General Guidance:". Be brief.\n\nKB:\n'+ctx;
+  const sys='You are the Shadowfax Sales Guide AI assistant. Study all KB entries and match by INTENT, not just keywords. Rules: 1) If KB has relevant info start with "From Knowledge Base:" and give the specific answer. 2) If KB lacks info start with "General Guidance:" and give practical advice. 3) Be specific and actionable, never vague. 4) For order movement/allocation issues mention Sudipta as contact.\n\nKB:\n'+ctx;
   try{
     let reply='';
     try{
@@ -1058,12 +1065,16 @@ async function sendMsg(){
     D.faqs.forEach(f=>{if(reply.toLowerCase().includes(f.q.toLowerCase().slice(0,20)))f.hits=(f.hits||0)+1;});
     save();typing.remove();addMsg('bot',reply.replace(/\n/g,'<br>'));
     const tkId='T-'+String((D.tickets||[]).length+1).padStart(3,'0');
+    // Pre-create ticket NOW with actual question text - guaranteed capture
+    D.tickets=D.tickets||[];
+    D.tickets.push({id:tkId,question:text,user:CU?.name||'Unknown',userEmail:CU?.email||'',status:'pending_feedback',aiReply:reply,ts:Date.now()});
+    save();
     const fbId='fb_'+Date.now();
     const fbWrap=document.createElement('div');fbWrap.id=fbId;
     fbWrap.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 6px 10px 44px;flex-wrap:wrap;';
     fbWrap.innerHTML='<span style="font-size:12px;color:var(--tx3)">Was this helpful?</span>'+
-      '<button onclick="markSatisfied(\''+tkId+'\',\''+fbId+'\');" style="background:var(--grn-bg);border:1.5px solid rgba(26,60,42,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--grn);cursor:pointer;font-family:var(--fn);font-weight:600;">Yes, helpful</button>'+
-      '<button onclick="markUnsatisfied(\''+tkId+'\',\''+fbId+'\');" style="background:var(--red-bg);border:1.5px solid rgba(211,47,47,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--fn);font-weight:600;">No - Raise Ticket</button>';
+      '<button onclick="markSatisfied(\''+tkId+'\',\''+fbId+'\');" style="background:var(--grn-bg);border:1.5px solid rgba(26,60,42,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--grn);cursor:pointer;font-family:var(--fn);font-weight:600;">👍 Yes, helpful</button>'+
+      '<button onclick="markUnsatisfied(\''+tkId+'\',\''+fbId+'\');" style="background:var(--red-bg);border:1.5px solid rgba(211,47,47,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--fn);font-weight:600;">👎 No — Raise Ticket</button>';
     document.getElementById('msgs').appendChild(fbWrap);
     document.getElementById('msgs').scrollTop=99999;
   }catch(e){typing.remove();addMsg('bot','Could not get a response. Please check your connection.');}
@@ -1074,7 +1085,8 @@ function renderTK(){
   const b=document.getElementById('tk-b');if(!b)return;
   const isAdmin=CU?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase();
   const tkSearch=(document.getElementById('tk-search')?.value||'').toLowerCase();
-  const base=isAdmin?[...D.tickets]:[...D.tickets.filter(t=>t.user===CU?.name)];
+  const allTk = (D.tickets||[]).filter(t=>t.status!=='pending_feedback');
+  const base=isAdmin?[...allTk]:[...allTk.filter(t=>t.user===CU?.name)];
   const list=base.filter(t=>!tkSearch||
     (t.question||'').toLowerCase().includes(tkSearch)||
     (t.user||'').toLowerCase().includes(tkSearch)
