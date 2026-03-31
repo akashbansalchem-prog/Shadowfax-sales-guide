@@ -259,7 +259,7 @@ function markUnsatisfied(ticketId, fbId) {
         <div class="al-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         <div class="al-name">Shadowfax <span>Sales Guide</span></div>
       </div>
-      <div class="al-tagline">FM Operations<br>Knowledge Hub<em>AI-powered answers for your team</em></div>
+      <div class="al-tagline">Shadowfax<br>Sales Portal<em>Your team's central operations hub</em></div>
     </div>
     <div class="al-stats">
       <div class="al-stat"><div class="al-stat-v">AI Powered</div><div class="al-stat-l">Instant FM ops answers</div></div>
@@ -718,9 +718,9 @@ function markUnsatisfied(ticketId, fbId) {
 
 <script>
 
-const STORE = 'sfx_portal_v27';
-const STORE_SESSION = 'sfx_sess_v27';
-const KB_VERSION = 27;
+const STORE = 'sfx_portal_v35';
+const STORE_SESSION = 'sfx_sess_v35';
+const KB_VERSION = 35;
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 const JSONBIN_KEY = '$2a$10$mSzeWEdTZkxzKqb/JigIjes9rKWSTj3jhBJZ8RuI0Be0tOhM6zgYq';
@@ -947,7 +947,43 @@ function renderKBP(){
   const g=document.getElementById('kb-pg');if(!g)return;
   const f=D.faqs.filter(x=>(!q||x.q.toLowerCase().includes(q)||x.a.toLowerCase().includes(q)||x.tag.toLowerCase().includes(q))&&(!cat||x.tag===cat));
   const isAdmin=CU?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase();
-  g.innerHTML=f.map(x=>'<div class="kbc"><span class="kbc-tg">'+x.tag+'</span><div class="kbc-q">'+x.q+'</div><div class="kbc-a">'+x.a.replace(/\n/g,'<br>')+'</div>'+(isAdmin?'<div class="kbc-ft"><button class="bsm bsm-gh" onclick="delKB('+x.id+')" style="font-size:11px;padding:5px 10px">Delete</button></div>':'')+'</div>').join('')||'<div style="color:var(--tx3);font-size:13px;padding:8px">No entries found.</div>';
+  g.innerHTML=f.map(x=>`
+    <div class="kbc" id="kbc-${x.id}">
+      <span class="kbc-tg">${x.tag}</span>
+      <div class="kbc-q" id="kbc-q-${x.id}">${x.q}</div>
+      <div class="kbc-a" id="kbc-a-${x.id}">${x.a.replace(/\n/g,'<br>')}</div>
+      ${isAdmin?`<div class="kbc-ft" style="display:flex;gap:8px;margin-top:8px">
+        <button class="bsm bsm-org" onclick="editKB(${x.id})" style="font-size:11px;padding:5px 10px">✏️ Edit</button>
+        <button class="bsm bsm-gh" onclick="delKB(${x.id})" style="font-size:11px;padding:5px 10px">Delete</button>
+      </div>`:''}
+    </div>`).join('')||'<div style="color:var(--tx3);font-size:13px;padding:8px">No entries found.</div>';
+}
+
+function editKB(id) {
+  const f = D.faqs.find(x=>x.id===id);
+  if (!f) return;
+  const card = document.getElementById('kbc-'+id);
+  if (!card) return;
+  const cats = (D.cats||[]).map(c=>`<option value="${c}" ${c===f.tag?'selected':''}>${c}</option>`).join('');
+  card.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <select id="edit-tag-${id}" class="fsl">${cats}</select>
+      <input id="edit-q-${id}" class="fi" value="${f.q.replace(/"/g,'&quot;')}" placeholder="Question"/>
+      <textarea id="edit-a-${id}" class="fi" style="min-height:100px;resize:vertical;font-family:var(--fn)">${f.a}</textarea>
+      <div style="display:flex;gap:8px">
+        <button class="bsm bsm-org" onclick="saveEditKB(${id})" style="padding:7px 14px">✅ Save</button>
+        <button class="bsm bsm-gh" onclick="renderKBP()" style="padding:7px 14px">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function saveEditKB(id) {
+  const f = D.faqs.find(x=>x.id===id);
+  if (!f) return;
+  f.tag = document.getElementById('edit-tag-'+id)?.value || f.tag;
+  f.q = document.getElementById('edit-q-'+id)?.value.trim() || f.q;
+  f.a = document.getElementById('edit-a-'+id)?.value.trim() || f.a;
+  save(); renderKBP(); renderKBS(); showToast('✅ Entry updated!');
 }
 
 function showKBItem(id){
@@ -1037,10 +1073,40 @@ async function sendMsg(){
 function renderTK(){
   const b=document.getElementById('tk-b');if(!b)return;
   const isAdmin=CU?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase();
-  const base=isAdmin?D.tickets:D.tickets.filter(t=>t.user===CU?.name);
-  const list=[...base].reverse();
+  const tkSearch=(document.getElementById('tk-search')?.value||'').toLowerCase();
+  const base=isAdmin?[...D.tickets]:[...D.tickets.filter(t=>t.user===CU?.name)];
+  const list=base.filter(t=>!tkSearch||
+    (t.question||'').toLowerCase().includes(tkSearch)||
+    (t.user||'').toLowerCase().includes(tkSearch)
+  ).reverse();
   if(!list.length){b.innerHTML='<div style="padding:22px;font-size:13px;color:var(--tx3);text-align:center">No tickets yet</div>';return;}
-  b.innerHTML=list.map(t=>'<div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-family:var(--fm);font-size:12px;color:var(--tx3)">'+t.id+'</span><span style="font-size:13px;font-weight:600;color:var(--tx);flex:1">'+(t.question||'').slice(0,80)+'</span><span class="bdg '+(t.status==='open'?'bdg-o':'bdg-c')+'">'+t.status+'</span>'+(t.escalated?'<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 7px;border-radius:4px">Escalated</span>':'')+'</div><div style="font-size:12px;color:var(--tx2)">By '+t.user+' · '+new Date(t.ts).toLocaleDateString('en-IN')+'</div>'+(t.adminReply?'<div style="background:var(--grn-bg);border:1px solid rgba(26,60,42,.15);border-radius:var(--rs);padding:10px 14px;font-size:13px;margin-top:8px"><strong style="font-size:11px;color:var(--grn);text-transform:uppercase">Akash Response</strong><br>'+t.adminReply+'</div>':'')+(isAdmin&&t.status==='open'?'<div style="display:flex;gap:8px;margin-top:10px"><input id="rep-'+t.id+'" class="fi" style="flex:1;font-size:13px;padding:8px 12px" placeholder="Type your response..."/><button onclick="adminReply(\''+t.id+'\')" class="bsm bsm-org">Send & Save to KB</button><button onclick="closeTK(\''+t.id+'\')" class="bsm bsm-gh">Close</button></div>':'')+'</div>').join('');
+  b.innerHTML=list.map(t=>{
+    const question=(t.question&&t.question!=='(from chat)'&&t.question!=='(question not captured)')
+      ?t.question:'(Question text not captured)';
+    const member=D.members.find(m=>m.name===t.user)||{};
+    const userLog=`<div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--s2);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--org)">${(t.user||'?')[0].toUpperCase()}</div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx)">${t.user||'Unknown'}</div>
+        <div style="font-size:11px;color:var(--tx3)">${member.email||''} · ${new Date(t.ts).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+    </div>`;
+    const statusBadge=`<span class="bdg ${t.status==='open'?'bdg-o':'bdg-c'}">${t.status}</span>`;
+    const escalatedBadge=t.escalated?'<span style="font-size:10px;font-weight:700;background:#EBF5EE;color:#1A3C2A;padding:2px 8px;border-radius:4px">Escalated</span>':'';
+    const adminReplyHtml=t.adminReply?`<div style="background:var(--grn-bg);border:1px solid rgba(26,60,42,.15);border-radius:var(--rs);padding:12px 14px;margin-top:10px"><div style="font-size:11px;font-weight:700;color:var(--grn);text-transform:uppercase;margin-bottom:4px">Akash Response</div><div style="font-size:13px;color:var(--tx)">${t.adminReply}</div></div>`:'';
+    const replyBox=isAdmin&&t.status==='open'?`<div style="display:flex;gap:8px;margin-top:12px"><input id="rep-${t.id}" class="fi" style="flex:1;font-size:13px;padding:8px 12px" placeholder="Type your response..."/><button onclick="adminReply('${t.id}')" class="bsm bsm-org">Send & Save to KB</button><button onclick="closeTK('${t.id}')" class="bsm bsm-gh">Close</button></div>`:'';
+    return `<div style="background:var(--white);border:1.5px solid ${t.status==='open'?'var(--amb)':'var(--bd)'};border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <span style="font-family:var(--fm);font-size:12px;color:var(--tx3);flex-shrink:0;margin-top:3px">${t.id}</span>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:14px;font-weight:600;color:var(--tx);line-height:1.5;margin-bottom:6px">${question}</div>
+          ${userLog}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">${statusBadge}${escalatedBadge}</div>
+      </div>
+      ${adminReplyHtml}${replyBox}
+    </div>`;
+  }).join('');
 }
 
 function closeTK(id){const t=D.tickets.find(x=>x.id===id);if(t){t.status='closed';save();renderTK();updateBadges();}}
@@ -1398,10 +1464,11 @@ function renderTraining() {
       ${t.desc ? `<div style="font-size:12px;color:var(--tx2);line-height:1.5">${t.desc}</div>` : ''}
       <div style="font-size:11px;color:var(--tx3)">Added by ${t.addedBy} · ${new Date(t.ts).toLocaleDateString('en-IN')}</div>
       <div style="display:flex;gap:8px;margin-top:4px">
-        ${canTrainAccess() && t.type === 'link' ? `<a href="${t.url}" target="_blank" style="flex:1;text-align:center;padding:8px;background:var(--org);color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">Open ${t.url.includes('youtube') ? 'Video' : 'Link'} ↗</a>` : ''}
-        ${canTrainAccess() && t.type !== 'link' && t.fileData ? `<a href="${t.fileData}" download="${t.fileName}" style="flex:1;text-align:center;padding:8px;background:var(--org);color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">Download ${t.fileName}</a>` : ''}
-        ${!canTrainAccess() ? `<span style="flex:1;text-align:center;padding:8px;background:var(--s2);color:var(--tx3);border-radius:var(--rs);font-size:12px;font-family:var(--fn)">🔒 Contact admin for access</span>` : ''}
-        ${canTrainAccess() && CU?.role === 'admin' ? `<button onclick="deleteTraining(${t.id})" style="padding:8px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rs);font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn)" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--tx2)';this.style.borderColor='var(--bd)'">Delete</button>` : ''}
+        ${t.type === 'link' && canTrainAccess() ? `<a href="${t.url}" target="_blank" style="flex:1;text-align:center;padding:8px;background:var(--org);color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">Open ${t.url.includes('youtube')?'Video':'Link'} ↗</a>` : ''}
+        ${t.type === 'link' && !canTrainAccess() ? `<a href="${t.url}" target="_blank" style="flex:1;text-align:center;padding:8px;background:var(--s2);color:var(--tx2);border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">Open Link ↗</a>` : ''}
+        ${t.type !== 'link' && t.fileData && canTrainAccess() ? `<a href="${t.fileData}" download="${t.fileName}" style="flex:1;text-align:center;padding:8px;background:var(--org);color:white;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;font-family:var(--fn)">⬇️ Download</a>` : ''}
+        ${t.type !== 'link' && !canTrainAccess() ? `<span style="flex:1;text-align:center;padding:8px;background:var(--s2);color:var(--tx3);border-radius:var(--rs);font-size:12px;font-family:var(--fn)">🔒 Download — Admin Only</span>` : ''}
+        ${canTrainAccess() && CU?.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase() ? `<button onclick="deleteTraining(${t.id})" style="padding:8px 12px;background:transparent;border:1.5px solid var(--bd);border-radius:var(--rs);font-size:12px;color:var(--tx2);cursor:pointer;font-family:var(--fn)" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--tx2)';this.style.borderColor='var(--bd)'">Delete</button>` : ''}
       </div>
     </div>`).join('');
 }
@@ -1728,6 +1795,14 @@ function mergeRemote(local, remote) {
   return merged;
 }
 
+
+function copyUserLink(email, pass) {
+  const url = 'https://shadowfax-sales-guide.vercel.app/';
+  const msg = 'Hi! Your Shadowfax Sales Guide account is ready.\n\nPortal: ' + url + '\nEmail: ' + email + (pass ? '\nPassword: ' + pass : '') + '\n\nOpen the portal link and sign in with above credentials.';
+  navigator.clipboard.writeText(msg).then(() => showToast('✅ Login details copied! Paste in WhatsApp.')).catch(() => {
+    prompt('Copy this and send to user:', msg);
+  });
+}
 </script>
 </body>
 </html>
