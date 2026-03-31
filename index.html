@@ -397,7 +397,7 @@ function markUnsatisfied(ticketId, fbId) {
       <button id="add-kb-b" onclick="openKBModal()">+ Add Q&amp;A Entry</button>
     </div>
     <div id="cm">
-      <div id="api-key-banner" style="display:none;background:#FEF9EC;border-bottom:1px solid rgba(245,158,11,.25);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div id="api-key-banner" style="display:none;background:#FEF9EC;border-bottom:1px solid rgba(245,158,11,.25);padding:10px 18px;align-items:center;gap:10px;flex-shrink:0">
         <span style="font-size:13px;color:#92640a;flex:1">⚡ <strong>Optional:</strong> Add a free Groq API key for faster AI responses. <a href="https://console.groq.com" target="_blank" style="color:#92640a;font-weight:600">Get free key →</a></span>
         <input id="api-key-input" type="password" placeholder="gsk_..." style="padding:7px 12px;border:1.5px solid #f59e0b;border-radius:6px;font-size:12px;font-family:var(--fn);width:240px;background:white"/>
         <button onclick="saveApiKey()" style="padding:7px 14px;background:#1A3C2A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">Save</button>
@@ -912,13 +912,19 @@ function markUnsatisfied(ticketId, fbId) {
   msgs.appendChild(nd); msgs.scrollTop=99999;
 }
 function saveApiKey() {
-  const key=document.getElementById('api-key-input')?.value.trim(); if(!key) return;
-  D.config=D.config||{}; D.config.groqKey=key;
-  // Save locally AND to JSONBin immediately
-  try { localStorage.setItem(STORE, JSON.stringify(D)); } catch(e) {}
-  saveToBlob(D).then(()=>showToast('API key saved!')).catch(()=>showToast('Key saved locally'));
-  const b=document.getElementById('api-key-banner'); if(b) b.style.display='none';
-  showToast('API key saved!');
+  const key = document.getElementById('api-key-input')?.value.trim();
+  if (!key) return;
+  D.config = D.config || {};
+  D.config.groqKey = key;
+  // Save in multiple places for persistence
+  try {
+    localStorage.setItem(STORE, JSON.stringify(D));
+    localStorage.setItem('sfx_groq_key', key); // backup
+  } catch(e) {}
+  saveToBlob(D).catch(() => {});
+  const b = document.getElementById('api-key-banner');
+  if (b) b.style.display = 'none';
+  showToast('✅ Groq API key saved!');
 }
 function genPassword() {
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
@@ -1536,9 +1542,10 @@ function scheduleMailer(){
 function checkApiKey() {
   const b = document.getElementById('api-key-banner');
   if (!b) return;
-  // Show banner only if no Groq key saved
+  // Only admin sees this banner, and only if no key saved
+  const isAdmin = CU?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   const hasKey = D.config?.groqKey && D.config.groqKey.length > 10;
-  b.style.display = hasKey ? 'none' : 'flex';
+  b.style.display = (isAdmin && !hasKey) ? 'flex' : 'none';
 }
 
 function showPg(n) {
@@ -1688,13 +1695,13 @@ function forceSyncNow() {
 }
 
 function mergeRemote(local, remote) {
-  if (!remote) return local;
+  if (!remote) return local || defData();
   if (!local) return remote;
   const merged = { ...remote };
-  // Merge members — keep all from both
+  // Merge members — keep all from both, remote wins for same email
   const memberMap = {};
   (local.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m);
-  (remote.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m); // remote wins for existing
+  (remote.members||[]).forEach(m => memberMap[m.email.toLowerCase()] = m);
   merged.members = Object.values(memberMap);
   // Ensure admin
   const ai = merged.members.findIndex(m => m.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
@@ -1702,18 +1709,22 @@ function mergeRemote(local, remote) {
   else { merged.members[ai].role='admin'; merged.members[ai].status='active'; }
   // Merge tickets
   const tkIds = new Set((remote.tickets||[]).map(t=>t.id));
-  (local.tickets||[]).forEach(t => { if(!tkIds.has(t.id)) merged.tickets.push(t); });
+  (local.tickets||[]).forEach(t => { if(!tkIds.has(t.id)) { merged.tickets=merged.tickets||[]; merged.tickets.push(t); } });
   // Merge KB
   const faqIds = new Set((remote.faqs||[]).map(f=>f.id));
-  (local.faqs||[]).forEach(f => { if(!faqIds.has(f.id)) merged.faqs.push(f); });
-  // KB version sync
+  (local.faqs||[]).forEach(f => { if(!faqIds.has(f.id)) { merged.faqs=merged.faqs||[]; merged.faqs.push(f); } });
+  // Sync KB version
   if (!merged.kbVersion || merged.kbVersion < KB_VERSION) {
     const def = defData();
-    const ids = new Set(merged.faqs.map(f=>f.id));
+    const ids = new Set((merged.faqs||[]).map(f=>f.id));
     def.faqs.forEach(f => { if(!ids.has(f.id)) merged.faqs.push(f); });
     merged.kbVersion = KB_VERSION;
   }
   if (!merged.cats||!merged.cats.length) merged.cats = defData().cats;
+  // ALWAYS preserve groqKey — whichever copy has it wins
+  const groqKey = local?.config?.groqKey || remote?.config?.groqKey || localStorage.getItem('sfx_groq_key') || '';
+  merged.config = merged.config || {};
+  if (groqKey) merged.config.groqKey = groqKey;
   return merged;
 }
 
