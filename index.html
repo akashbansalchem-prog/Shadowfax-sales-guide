@@ -609,8 +609,10 @@ function markUnsatisfied(ticketId, fbId) {
     </div>
     <textarea id="m-q" placeholder="Question / Problem Statement…"></textarea>
     <textarea id="m-a" placeholder="Answer / Resolution…" style="min-height:110px"></textarea>
-    <div class="md-acts">
+    <div id="kb-ai-status" style="display:none;font-size:12px;color:var(--blu);padding:8px 0;text-align:center">✨ AI improving language...</div>
+    <div class="md-acts" style="flex-wrap:wrap;gap:8px">
       <button class="bs" onclick="closeKBModal()">Cancel</button>
+      <button class="bp" style="background:var(--s2);color:var(--tx);border:1.5px solid var(--bd)" onclick="aiCorrectKB('m-q','m-a','kb-ai-status')">✨ AI Correct Language</button>
       <button class="bp" onclick="saveKB()">Save Entry</button>
     </div>
   </div>
@@ -720,7 +722,7 @@ function markUnsatisfied(ticketId, fbId) {
 
 const STORE = 'sfx_portal_v35';
 const STORE_SESSION = 'sfx_sess_v35';
-const KB_VERSION = 36;
+const KB_VERSION = 37;
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
 const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 const JSONBIN_KEY = '$2a$10$mSzeWEdTZkxzKqb/JigIjes9rKWSTj3jhBJZ8RuI0Be0tOhM6zgYq';
@@ -977,11 +979,84 @@ function editKB(id) {
       <select id="edit-tag-${id}" class="fsl">${cats}</select>
       <input id="edit-q-${id}" class="fi" value="${f.q.replace(/"/g,'&quot;')}" placeholder="Question"/>
       <textarea id="edit-a-${id}" class="fi" style="min-height:100px;resize:vertical;font-family:var(--fn)">${f.a}</textarea>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="ai-btn-${id}" class="bsm" onclick="aiCorrectKBInline(${id})" style="padding:7px 14px;background:var(--s2);border:1.5px solid var(--bd);color:var(--tx2)">✨ AI Correct</button>
         <button class="bsm bsm-org" onclick="saveEditKB(${id})" style="padding:7px 14px">✅ Save</button>
         <button class="bsm bsm-gh" onclick="renderKBP()" style="padding:7px 14px">Cancel</button>
       </div>
     </div>`;
+}
+
+
+async function aiCorrectKB(qId, aId, statusId) {
+  const qEl = document.getElementById(qId);
+  const aEl = document.getElementById(aId);
+  const statusEl = document.getElementById(statusId);
+  if (!qEl || !aEl) return;
+  const q = qEl.value.trim();
+  const a = aEl.value.trim();
+  if (!q && !a) { showToast('Please enter question and answer first.'); return; }
+
+  if (statusEl) statusEl.style.display = 'block';
+
+  try {
+    const prompt = `You are a professional language editor for an internal operations portal at Shadowfax (a logistics company in India).
+
+Improve the language of this Knowledge Base entry. Make it:
+- Clear, professional and easy to understand
+- Properly structured with good punctuation
+- Concise but complete — don't remove important details
+- Use proper English with correct grammar
+- Keep all technical terms, names, and process details exactly as they are
+- Do NOT change the meaning or facts
+
+Current entry:
+QUESTION: ${q}
+ANSWER: ${a}
+
+Return ONLY a JSON object in this exact format (no markdown, no extra text):
+{"q":"improved question here","a":"improved answer here"}`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error('API error: ' + res.status);
+    const data = await res.json();
+    const text = (data.content || []).map(c => c.text || '').join('').trim();
+
+    // Parse JSON response
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    if (parsed.q) qEl.value = parsed.q;
+    if (parsed.a) aEl.value = parsed.a;
+    if (statusEl) statusEl.style.display = 'none';
+    showToast('✅ Language improved by AI!');
+  } catch(e) {
+    if (statusEl) statusEl.style.display = 'none';
+    showToast('⚠️ AI correction failed. Check connection.');
+    console.error('AI correct error:', e);
+  }
+}
+
+async function aiCorrectKBInline(id) {
+  const qEl = document.getElementById('edit-q-' + id);
+  const aEl = document.getElementById('edit-a-' + id);
+  const btn = document.getElementById('ai-btn-' + id);
+  if (!qEl || !aEl) return;
+
+  if (btn) { btn.textContent = '✨ Improving...'; btn.disabled = true; }
+
+  await aiCorrectKB('edit-q-' + id, 'edit-a-' + id, null);
+
+  if (btn) { btn.textContent = '✨ AI Correct'; btn.disabled = false; }
 }
 
 function saveEditKB(id) {
