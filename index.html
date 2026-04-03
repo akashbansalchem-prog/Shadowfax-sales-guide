@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <!-- 
-  SHADOWFAX SALES GUIDE — NETLIFY DEPLOYMENT
+  SHADOWFAX SALES GUIDE — GOOGLE SHEETS BACKEND
   ============================================
-  HOW TO UPDATE (30 seconds):
-  1. Make changes here via Claude
-  2. Go to netlify.com → your site → Deploys
-  3. Drag & drop this new HTML file
-  4. Done — all users get the update on next refresh (no re-download needed)
+  BACKEND: Google Sheets via Apps Script
+  SHEET: https://docs.google.com/spreadsheets/d/1C88W7Q8IIsftEu01VwX0QWb1ewfXu2L8f9VKKl4NHWw/
   
-  HOW TO DEPLOY FIRST TIME:
-  1. Go to netlify.com → "Add new site" → "Deploy manually"
-  2. Drag & drop this file
-  3. You get a URL like: https://your-site.netlify.app
-  4. Share that URL with your team — they bookmark it once, forever
+  HOW TO UPDATE PORTAL:
+  1. Make changes to this HTML via Claude
+  2. Push to GitHub → Vercel auto-deploys
+  
+  HOW TO UPDATE APPS SCRIPT (if Code.gs changes):
+  1. Google Sheet → Extensions → Apps Script
+  2. Paste new Code.gs → Save
+  3. Deploy → Manage deployments → Edit → New version → Deploy
   
   ADMIN LOGIN: akash.bansal@shadowfax.in / admin@123
   KB VERSION: Bump KB_VERSION constant in JS to push KB updates to all users
@@ -724,12 +724,9 @@ const STORE = 'sfx_portal_v35';
 const STORE_SESSION = 'sfx_sess_v35';
 const KB_VERSION = 37;
 const ADMIN_EMAIL = 'akash.bansal@shadowfax.in';
-const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
-const JSONBIN_KEY = '$2a$10$mSzeWEdTZkxzKqb/JigIjes9rKWSTj3jhBJZ8RuI0Be0tOhM6zgYq';
-// Bin ID is shared across all devices — set once after first run
-// This gets populated on first load and stored in localStorage for speed
-const JSONBIN_BIN_ID = '69ca8a2c36566621a8613798'; // Permanent shared bin — DO NOT change
-localStorage.setItem('sfx_bin_id', JSONBIN_BIN_ID); // Ensure all browsers use same bin
+// ── Google Sheets Backend ──
+// Replace this URL with your Apps Script /exec URL after deploying Code.gs
+const GSHEET_API = 'https://script.google.com/macros/s/AKfycby6RM1dSdqTz2nhRHfxgzacw0cGn2AGB8oI48HZhgmKjwWK21tQqZd_9A205h8jDMMuZw/exec';
 let D = {}, CU = null, CI = null;
 
 function defData() {
@@ -794,36 +791,33 @@ function loadSession() {
 }
 async function loadFromBlob() {
   try {
-    const res = await fetch(JSONBIN_API + '/' + JSONBIN_BIN_ID + '/latest', {
-      headers: { 'X-Master-Key': JSONBIN_KEY }
+    if (!GSHEET_API || GSHEET_API === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return null;
+    const res = await fetch(GSHEET_API + '?action=getData', {
+      method: 'GET',
+      redirect: 'follow'
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.record || null;
-  } catch(e) { return null; }
+    const text = await res.text();
+    try {
+      const result = JSON.parse(text);
+      if (result.success && result.data && result.data.members) {
+        return result.data;
+      }
+    } catch(pe) { console.log('GSheet parse error:', pe, text.substring(0, 200)); }
+    return null;
+  } catch(e) { console.log('GSheet load error:', e); return null; }
 }
 async function saveToBlob(data) {
   try {
-    const body = JSON.stringify(data);
-    if (!JSONBIN_BIN_ID) {
-      const res = await fetch(JSONBIN_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY, 'X-Bin-Name': 'sfx-salesguide', 'X-Bin-Private': 'false' },
-        body
-      });
-      if (res.ok) {
-        const r = await res.json();
-        JSONBIN_BIN_ID = r.metadata.id;
-        localStorage.setItem('sfx_bin_id', JSONBIN_BIN_ID);
-      }
-    } else {
-      await fetch(JSONBIN_API + '/' + JSONBIN_BIN_ID, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-        body
-      });
-    }
-  } catch(e) {}
+    if (!GSHEET_API || GSHEET_API === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return;
+    // Use no-cors to avoid CORS preflight — Apps Script still processes the POST
+    fetch(GSHEET_API, {
+      method: 'POST',
+      mode: 'no-cors',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'saveData', data: data })
+    }).catch(function(e) { console.log('GSheet save bg error:', e); });
+  } catch(e) { console.log('GSheet save error:', e); }
 }
 function showSc(id) {
   ['sc-login','sc-signup'].forEach(s => {
@@ -879,7 +873,7 @@ function runDiag() {
   box.style.display = box.style.display==='none'?'block':'none';
   if (box.style.display==='none') return;
   const nl='\n', email=(document.getElementById('l-email').value||'').trim().toLowerCase(), pass=document.getElementById('l-pass').value||'';
-  let out='STORE: '+STORE+nl+'BIN_ID: '+(JSONBIN_BIN_ID||'not set')+nl+'MEMBERS: '+(D.members||[]).length+nl+nl;
+  let out='STORE: '+STORE+nl+'Backend: Google Sheets'+nl+'MEMBERS: '+(D.members||[]).length+nl+nl;
   (D.members||[]).forEach(m=>{ out+='['+m.status+'] '+m.email+nl+'  pass:"'+(m.pass||'NONE')+'" role:'+m.role+nl; });
   if (email) {
     out+=nl+'EMAIL: "'+email+'"'+nl+'PASS: "'+pass+'"'+nl;
@@ -1835,7 +1829,7 @@ function forceSyncNow() {
       const el = document.getElementById('db-status-text');
       if (el) el.textContent = '✅ Synced · ' + D.members.filter(m=>m.email.toLowerCase()!==ADMIN_EMAIL.toLowerCase()).length + ' members · ' + D.members.filter(m=>m.status==='pending').length + ' pending';
       const bid = document.getElementById('db-bin-id');
-      if (bid) bid.textContent = 'Bin: ' + (JSONBIN_BIN_ID||'not created yet');
+      if (bid) bid.textContent = 'Backend: Google Sheets';
       showToast('Synced! ' + D.members.filter(m=>m.status==='pending').length + ' pending approvals');
     } else {
       const el = document.getElementById('db-status-text');
