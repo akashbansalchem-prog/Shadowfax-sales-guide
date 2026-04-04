@@ -459,6 +459,18 @@ function markUnsatisfied(ticketId, fbId) {
         <button onclick="forceSyncNow()" style="margin-left:auto;padding:5px 12px;background:var(--org);color:white;border:none;border-radius:var(--rx);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fn)">🔄 Sync Now</button>
       </div>
 
+      <!-- DATA MANAGEMENT -->
+      <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--rs);padding:14px 18px;margin-bottom:16px;box-shadow:var(--sh)">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📦 Data Management</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button onclick="exportData()" style="padding:7px 14px;background:var(--org-lt);border:1.5px solid var(--org-mid);border-radius:var(--rx);color:var(--org);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">⬇ Export JSON Backup</button>
+          <button onclick="document.getElementById('import-file').click()" style="padding:7px 14px;background:var(--blu-bg);border:1.5px solid rgba(26,115,232,.3);border-radius:var(--rx);color:var(--blu);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">⬆ Import JSON</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+          <button onclick="pushToGSheet()" style="padding:7px 14px;background:#E8F5E9;border:1.5px solid rgba(76,175,80,.3);border-radius:var(--rx);color:#2E7D32;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fn)">📤 Push to Google Sheet</button>
+          <span id="data-mgmt-status" style="font-size:11px;color:var(--tx3);margin-left:4px"></span>
+        </div>
+      </div>
+
       <!-- STATS ROW -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
         <div style="background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:14px 18px;box-shadow:var(--sh)">
@@ -764,10 +776,13 @@ function defData() {
 }
 
 
+var _gsheetTimer = null;
 function save() {
   D.updatedAt = Date.now();
   try { localStorage.setItem(STORE, JSON.stringify(D)); } catch(e) {}
-  saveToBlob(D).catch(() => {});
+  // Throttle GSheet saves — push at most once every 15 seconds
+  if (_gsheetTimer) clearTimeout(_gsheetTimer);
+  _gsheetTimer = setTimeout(function() { saveToBlob(D).catch(function(){}); }, 15000);
 }
 function loadLocal() {
   try {
@@ -809,14 +824,27 @@ async function loadFromBlob() {
 async function saveToBlob(data) {
   try {
     if (!GSHEET_API || GSHEET_API === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return;
-    // Use no-cors to avoid CORS preflight — Apps Script still processes the POST
-    fetch(GSHEET_API, {
-      method: 'POST',
-      mode: 'no-cors',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'saveData', data: data })
-    }).catch(function(e) { console.log('GSheet save bg error:', e); });
+    // Use hidden iframe + form — survives Apps Script 302 redirect
+    var iframeName = 'gs_' + Date.now();
+    var iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = GSHEET_API;
+    form.target = iframeName;
+    form.style.display = 'none';
+    var input = document.createElement('textarea');
+    input.name = 'payload';
+    input.value = JSON.stringify({ action: 'saveData', data: data });
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(function() {
+      try { document.body.removeChild(form); } catch(e) {}
+      try { document.body.removeChild(iframe); } catch(e) {}
+    }, 10000);
   } catch(e) { console.log('GSheet save error:', e); }
 }
 function showSc(id) {
@@ -1883,6 +1911,73 @@ function copyUserLink(email, pass) {
   navigator.clipboard.writeText(msg).then(() => showToast('✅ Login details copied! Paste in WhatsApp.')).catch(() => {
     prompt('Copy this and send to user:', msg);
   });
+}
+
+function exportData() {
+  const status = document.getElementById('data-mgmt-status');
+  try {
+    const json = JSON.stringify(D, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const date = new Date().toISOString().slice(0,10);
+    a.download = 'salesguide-backup-' + date + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    if (status) status.textContent = '✅ Downloaded! ' + (D.members||[]).length + ' members, ' + (D.faqs||[]).length + ' FAQs';
+    showToast('✅ Backup downloaded');
+  } catch(e) {
+    if (status) status.textContent = '❌ Export failed: ' + e.message;
+  }
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  const status = document.getElementById('data-mgmt-status');
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.members || !imported.faqs) {
+        if (status) status.textContent = '❌ Invalid file — missing members or faqs';
+        return;
+      }
+      const confirmMsg = 'Import ' + imported.members.length + ' members, ' + imported.faqs.length + ' FAQs, ' + (imported.tickets||[]).length + ' tickets?\n\nThis will REPLACE current data.';
+      if (!confirm(confirmMsg)) {
+        if (status) status.textContent = 'Import cancelled';
+        return;
+      }
+      D = imported;
+      D.updatedAt = Date.now();
+      save();
+      updateBadges(); renderAP(); renderTK(); renderKBS(); renderKBP(); renderTraining(); renderChatLogs();
+      if (status) status.textContent = '✅ Imported! ' + D.members.length + ' members, ' + D.faqs.length + ' FAQs';
+      showToast('✅ Data imported successfully');
+    } catch(err) {
+      if (status) status.textContent = '❌ Invalid JSON file: ' + err.message;
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function pushToGSheet() {
+  const status = document.getElementById('data-mgmt-status');
+  if (!GSHEET_API || GSHEET_API === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
+    if (status) status.textContent = '❌ Google Sheet API URL not configured';
+    return;
+  }
+  // Step 1: Download backup JSON
+  exportData();
+  // Step 2: Open the Apps Script upload page
+  if (status) status.textContent = '📁 JSON downloaded! Now upload it on the page that opens...';
+  showToast('Opening Google Sheet upload page...');
+  setTimeout(function() {
+    window.open(GSHEET_API + '?action=upload', '_blank');
+  }, 1000);
 }
 </script>
 </body>
