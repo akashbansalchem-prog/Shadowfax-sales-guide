@@ -824,7 +824,6 @@ async function loadFromBlob() {
 async function saveToBlob(data) {
   try {
     if (!GSHEET_API || GSHEET_API === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return;
-    // Use hidden iframe + form — survives Apps Script 302 redirect
     var iframeName = 'gs_' + Date.now();
     var iframe = document.createElement('iframe');
     iframe.name = iframeName;
@@ -1970,14 +1969,35 @@ function pushToGSheet() {
     if (status) status.textContent = '❌ Google Sheet API URL not configured';
     return;
   }
-  // Step 1: Download backup JSON
-  exportData();
-  // Step 2: Open the Apps Script upload page
-  if (status) status.textContent = '📁 JSON downloaded! Now upload it on the page that opens...';
-  showToast('Opening Google Sheet upload page...');
+  if (status) status.textContent = '⏳ Pushing to Google Sheet...';
+  showToast('Pushing data to Google Sheet...');
+
+  var iframeName = 'gsheet_push_' + Date.now();
+  var iframe = document.createElement('iframe');
+  iframe.name = iframeName;
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GSHEET_API;
+  form.target = iframeName;
+  form.style.display = 'none';
+
+  var input = document.createElement('textarea');
+  input.name = 'payload';
+  input.value = JSON.stringify({ action: 'saveData', data: D });
+  form.appendChild(input);
+
+  document.body.appendChild(form);
+  form.submit();
+
   setTimeout(function() {
-    window.open(GSHEET_API + '?action=upload', '_blank');
-  }, 1000);
+    if (status) status.textContent = '✅ Pushed! ' + (D.members||[]).length + ' members, ' + (D.faqs||[]).length + ' FAQs synced.';
+    showToast('✅ Data pushed to Google Sheet');
+    try { document.body.removeChild(form); } catch(e) {}
+    try { document.body.removeChild(iframe); } catch(e) {}
+  }, 5000);
 }
 </script>
 </body>
